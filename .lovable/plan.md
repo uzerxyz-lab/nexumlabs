@@ -57,7 +57,11 @@ Data दो तरह से रखा जा सकता है:
 - **Receipt / Voucher print** — हर entry की slip.
 - **Cheque tracking**: pending / cleared / bounced status.
 - **Duplicate entry warning** (same party, same amount, same day)।
-- **Keyboard shortcuts** — fast data entry के लिए (नई entry, save, search)।
+- **Keyboard shortcuts** — सारी basic keys काम करेंगी:
+  - Ctrl+S = Save, Ctrl+C / Ctrl+V = Copy / Paste, Ctrl+X = Cut, Ctrl+A = Select all
+  - Ctrl+Z = Undo (आखिरी entry/बदलाव वापस), Ctrl+Y = Redo
+  - Ctrl+F = Search, Ctrl+N = नई entry, Ctrl+P = Print, Esc = बंद/cancel, Enter/Tab = अगला field
+  - Mac पर Ctrl की जगह Cmd भी चलेगा।
 - **Urdu/English दोनों में UI** (अगर चाहिए हो)।
 
 ## 8. बनाने का क्रम
