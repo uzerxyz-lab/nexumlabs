@@ -27,16 +27,18 @@ Yeh choice aap bata dein; baqi plan dono mein aik jaisa hai.
 Har entry mein: date, account, amount, payment method, reference, remarks.
 - **Cash Inward** (receipt) — maslan Ali Enterprises se 10,00,000 aaye.
 - **Cash Outward** (payment) — maslan Musa Enterprises ko 5,00,000 diye.
-- **Sale** aur **Purchase** entries.
+- **Sale** aur **Purchase** entries — qty/rate nahi, sirf aik **Particulars** field (maslan "Iron Billet 25 Ton") aur total amount.
 - **Worker**: Salary, Advance.
-- **Miscellaneous expenses** (bijli, transport, chai-pani waghera — expense heads aap khud bana sakenge).
+- **Miscellaneous expenses** — categories aap khud add/edit kar sakenge (Bijli Bill, Gas Bill, Transport, Rent...), aur har category ke saath **location/tag** (Factory, Ghar, ya jo aap add karein).
 - **Payment method**: Cash / Cheque / Online transfer — cheque par cheque no. aur bank, online par bank/reference.
 - **Auto capital**: har naam, remarks aur text field mein har word ka pehla letter khud capital ho jayega (ali trader → Ali Trader).
+- **Date format**: DD-MM-YYYY. **Time format**: 12-hour AM/PM (maslan 03:45 PM).
 
 ## 4. Search (har jagah)
 - Typing ke saath saath suggestions.
 - Capital/small, dash, space, dot sab ignore — `ali-trader`, `ALI TRADER`, `alitrader` sab same result.
 - Short ID se bhi search (`AT011`).
+- **Filters**: category (sirf "Bill"), tag (sirf "Factory"), dono mila kar (sirf Factory ka Bill), entry type, payment method, date range.
 
 ## 5. Ledgers aur Reports
 - **Dealer-wise ledger**: date-wise entries, running balance, closing balance.
@@ -77,6 +79,5 @@ Har entry mein: date, account, amount, payment method, reference, remarks.
 ---
 ### Aage barhne se pehle bata dein
 1. Data sirf aik machine par offline, ya dono machines mein sync?
-2. Sale/Purchase mein item-wise detail (qty, rate) chahiye ya sirf total amount?
-3. Currency aur date format? (PKR, dd-mm-yyyy?)
-4. Kitne users honge — sirf aap aur admin, ya staff ke alag accounts bhi?
+2. Currency PKR (Rs) theek hai?
+3. Kitne users honge — sirf aap aur admin, ya staff ke alag accounts bhi?
