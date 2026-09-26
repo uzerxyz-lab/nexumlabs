@@ -1,80 +1,82 @@
 # Cash Book / Ledger Software — Plan
 
-## पहले एक ज़रूरी बात
-यहाँ मैं जो बनाता हूँ वह web app होता है। Mac और Windows दोनों पर चलाने का तरीका:
-app को **installable offline app (PWA)** बनाऊँगा — Chrome/Edge/Safari से एक बार खोलकर "Install" करने पर वह desktop पर अपने icon के साथ, अपनी window में खुलेगा, बिल्कुल normal software की तरह, और **internet के बिना** चलेगा।
+## Pehle aik zaroori baat
+Main jo software banata hoon woh web app hota hai. Mac aur Windows dono par chalane ka tareeqa:
+isay **installable offline app (PWA)** banaunga — Chrome/Edge/Safari mein aik dafa khol kar "Install" karne se yeh desktop par apne icon ke saath, apni window mein khulega, bilkul normal software ki tarah, aur **internet ke baghair** chalega.
 
-Data दो तरह से रखा जा सकता है:
-- **पूरी तरह offline (default)** — सारा data उसी machine के अंदर save होगा। कोई internet नहीं, पर दोनों machines का data अलग-अलग रहेगा (backup file export/import से transfer होगा)।
-- **Cloud sync** — data online भी रखा जाए ताकि दोनों machines पर एक ही data दिखे, और internet न हो तो offline चले और बाद में sync हो जाए।
+Data rakhne ke do tareeqay:
+- **Mukammal offline (default)** — sara data usi machine mein save hoga. Internet ki zaroorat nahi, lekin dono machines ka data alag rahega (backup file export/import se transfer hoga).
+- **Cloud sync** — data online bhi rahe taake dono machines par aik jaisa data dikhe; internet na ho to offline chale aur baad mein sync ho jaye.
 
-यह चुनाव आप बता दें; बाकी plan दोनों में एक जैसा है।
+Yeh choice aap bata dein; baqi plan dono mein aik jaisa hai.
 
 ## 1. Login
-- Main screen पर username + password.
-- दो roles: **User** (entries करेगा) और **Admin** (delete/edit/restore कर सकेगा)।
-- Admin panel के लिए अलग password (दोबारा confirm)।
+- Main screen par username + password.
+- Do roles: **User** (entries karega) aur **Admin** (delete/edit/restore kar sakega).
+- Admin panel ke liye alag password confirmation.
 
 ## 2. Accounts (Parties / Dealers / Workers)
-- नया account बनाना: नाम, type (Customer / Supplier / Worker / Expense head), phone, address, opening balance.
-- **Auto short ID**: नाम के initials + `01` + sequential number.
+- Naya account: naam, type (Customer / Supplier / Worker / Expense head), phone, address, opening balance.
+- **Auto short ID**: naam ke initials + `01` + sequential number.
   - Ali Trader → `AT011`
   - Ali Enterprises → `AE012`
   - Ali Trading Company → `ATC013`
-- ID unique रहेगी; टकराव हो तो number अपने आप आगे बढ़ेगा।
+- ID hamesha unique rahegi.
 
-## 3. Entries (main screen से)
-हर entry में: date, account, amount, payment method, reference, remarks.
-- **Cash Inward** (receipt) — जैसे Ali Enterprises से 10,00,000 आए।
-- **Cash Outward** (payment) — जैसे Musa Enterprises को 5,00,000 दिए।
-- **Sale** और **Purchase** entries (item/description, qty, rate, total — जितना आप चाहें उतना simple)।
+## 3. Entries (main screen se)
+Har entry mein: date, account, amount, payment method, reference, remarks.
+- **Cash Inward** (receipt) — maslan Ali Enterprises se 10,00,000 aaye.
+- **Cash Outward** (payment) — maslan Musa Enterprises ko 5,00,000 diye.
+- **Sale** aur **Purchase** entries.
 - **Worker**: Salary, Advance.
-- **Miscellaneous expenses** (bijli, transport, चाय-पानी आदि — expense heads आप खुद बना सकेंगे)।
-- **Payment method**: Cash / Cheque / Online transfer — cheque पर cheque no. व bank, online पर bank/reference field.
+- **Miscellaneous expenses** (bijli, transport, chai-pani waghera — expense heads aap khud bana sakenge).
+- **Payment method**: Cash / Cheque / Online transfer — cheque par cheque no. aur bank, online par bank/reference.
+- **Auto capital**: har naam, remarks aur text field mein har word ka pehla letter khud capital ho jayega (ali trader → Ali Trader).
 
-## 4. Search (हर जगह)
-- Typing के साथ-साथ suggestions।
-- Case ignore, dash/space/dot ignore — `ali-trader`, `ALI TRADER`, `alitrader` सब एक ही result देंगे।
-- Short ID से भी search (`AT011`)।
+## 4. Search (har jagah)
+- Typing ke saath saath suggestions.
+- Capital/small, dash, space, dot sab ignore — `ali-trader`, `ALI TRADER`, `alitrader` sab same result.
+- Short ID se bhi search (`AT011`).
 
-## 5. Ledgers और Reports
-- **Dealer-wise ledger**: date wise entries, running balance, closing balance.
-- **Cash book / Day book**: किसी भी दिन का total inward, outward, closing cash.
-- **Worker ledger**: salary, advance, बकाया।
+## 5. Ledgers aur Reports
+- **Dealer-wise ledger**: date-wise entries, running balance, closing balance.
+- **Cash book / Day book**: kisi bhi din ka total inward, outward, closing cash.
+- **Worker ledger**: salary, advance, baqaya.
 - **Expense report**: head-wise total.
-- Date range filter, print और Excel/PDF export.
+- Date range filter, print aur Excel/PDF export.
 
 ## 6. Admin Panel
-- Accounts और entries की list, **checkbox से multiple selection**.
-- Edit और Delete (soft delete — data गायब नहीं होगा)।
-- **Delete Log**: क्या delete हुआ, किसने, कब, पूरी details के साथ — वहीं से **Restore** का button।
-- Edit करने पर भी पुराना value log में रहेगा (audit trail)।
+- Accounts aur entries ki list, **checkbox se multiple selection**.
+- Edit aur Delete (soft delete — data khatam nahi hoga).
+- **Delete Log**: kya delete hua, kisne, kab, poori details — wahin se **Restore** button.
+- Edit karne par purani value bhi log mein rahegi (audit trail).
 
-## 7. इसके अलावा जो professional तौर पर होना चाहिए (मेरा suggestion)
-- **Dashboard**: आज का cash in/out, total receivable, total payable, top pending parties.
-- **Backup / Restore**: एक click में पूरी file export, दूसरी machine पर import — Mac↔Windows दोनों तरफ।
-- **Financial year / date-wise closing** और opening balance carry forward.
-- **Receipt / Voucher print** — हर entry की slip.
-- **Cheque tracking**: pending / cleared / bounced status.
-- **Duplicate entry warning** (same party, same amount, same day)।
-- **Keyboard shortcuts** — सारी basic keys काम करेंगी:
-  - Ctrl+S = Save, Ctrl+C / Ctrl+V = Copy / Paste, Ctrl+X = Cut, Ctrl+A = Select all
-  - Ctrl+Z = Undo (आखिरी entry/बदलाव वापस), Ctrl+Y = Redo
-  - Ctrl+F = Search, Ctrl+N = नई entry, Ctrl+P = Print, Esc = बंद/cancel, Enter/Tab = अगला field
-  - Mac पर Ctrl की जगह Cmd भी चलेगा।
-- **Urdu/English दोनों में UI** (अगर चाहिए हो)।
+## 7. Keyboard Shortcuts
+- Ctrl+S = Save, Ctrl+C / Ctrl+V / Ctrl+X = Copy / Paste / Cut, Ctrl+A = Select all
+- Ctrl+Z = Undo (aakhri entry/tabdeeli wapas), Ctrl+Y = Redo
+- Ctrl+F = Search, Ctrl+N = Nayi entry, Ctrl+P = Print, Esc = Cancel, Enter/Tab = agla field
+- Mac par Cmd bhi kaam karega.
 
-## 8. बनाने का क्रम
-1. Design + login + dashboard का ढाँचा
+## 8. Mazeed professional features (meri tajweez)
+- **Dashboard**: aaj ka cash in/out, total receivable, total payable, pending parties.
+- **Backup / Restore**: aik click mein poori file export, doosri machine par import.
+- **Financial year closing** aur opening balance carry forward.
+- **Receipt / Voucher print** har entry ki.
+- **Cheque tracking**: pending / cleared / bounced.
+- **Duplicate entry warning** (same party, same amount, same din).
+- Urdu/English UI (agar chahiye).
+
+## 9. Banane ki tarteeb
+1. Design + login + dashboard
 2. Accounts + auto short ID + search
-3. Entries (inward/outward, sale/purchase, salary/advance/expense) + payment methods
-4. Ledgers और reports + print/export
+3. Entries + payment methods + auto capital
+4. Ledgers aur reports + print/export
 5. Admin panel + delete log + restore
-6. Offline install (PWA) + backup/restore
+6. Shortcuts, offline install, backup/restore
 
 ---
-### आगे बढ़ने से पहले बताइए
-1. Data सिर्फ offline एक machine पर, या दोनों machines में sync?
-2. Sale/Purchase में item-wise detail (qty, rate) चाहिए या सिर्फ total amount?
-3. Currency और date format? (PKR / INR, dd-mm-yyyy)
-4. कितने users बनेंगे — सिर्फ आप और एक admin, या staff के अलग accounts भी?
+### Aage barhne se pehle bata dein
+1. Data sirf aik machine par offline, ya dono machines mein sync?
+2. Sale/Purchase mein item-wise detail (qty, rate) chahiye ya sirf total amount?
+3. Currency aur date format? (PKR, dd-mm-yyyy?)
+4. Kitne users honge — sirf aap aur admin, ya staff ke alag accounts bhi?
