@@ -11,9 +11,9 @@ Data rakhne ke do tareeqay:
 Yeh choice aap bata dein; baqi plan dono mein aik jaisa hai.
 
 ## 1. Login
-- Main screen par username + password.
-- Do roles: **User** (entries karega) aur **Admin** (delete/edit/restore kar sakega).
-- Admin panel ke liye alag password confirmation.
+- Sirf **aik user** (aap). Main screen par username + password.
+- Main screen ke andar hi **Admin Panel** (edit/delete/restore) — kholne par password dobara confirm hoga.
+- Currency sirf **PKR (Rs)**, koi aur currency nahi.
 
 ## 2. Accounts (Parties / Dealers / Workers)
 - Naya account: naam, type (Customer / Supplier / Worker / Expense head), phone, address, opening balance.
@@ -78,6 +78,4 @@ Har entry mein: date, account, amount, payment method, reference, remarks.
 
 ---
 ### Aage barhne se pehle bata dein
-1. Data sirf aik machine par offline, ya dono machines mein sync?
-2. Currency PKR (Rs) theek hai?
-3. Kitne users honge — sirf aap aur admin, ya staff ke alag accounts bhi?
+1. Data sirf aik machine par offline (bilkul free), ya dono machines mein cloud sync (monthly free allowance mein aam tor par cover ho jata hai)?
