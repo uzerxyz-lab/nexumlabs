@@ -4,11 +4,10 @@
 Main jo software banata hoon woh web app hota hai. Mac aur Windows dono par chalane ka tareeqa:
 isay **installable offline app (PWA)** banaunga — Chrome/Edge/Safari mein aik dafa khol kar "Install" karne se yeh desktop par apne icon ke saath, apni window mein khulega, bilkul normal software ki tarah, aur **internet ke baghair** chalega.
 
-Data rakhne ke do tareeqay:
-- **Mukammal offline (default)** — sara data usi machine mein save hoga. Internet ki zaroorat nahi, lekin dono machines ka data alag rahega (backup file export/import se transfer hoga).
-- **Cloud sync** — data online bhi rahe taake dono machines par aik jaisa data dikhe; internet na ho to offline chale aur baad mein sync ho jaye.
-
-Yeh choice aap bata dein; baqi plan dono mein aik jaisa hai.
+**Data (final decision): Local-first + optional Cloud backup**
+- Sara data machine par save hoga — software hamesha offline chalega.
+- Cloud sirf backup/sync ke liye. Agar kabhi free limit khatam ho aur pay na karein, to sirf cloud backup rukega; software waise hi chalta rahega.
+- Manual backup file (export/import) bhi hamesha available.
 
 ## 1. Login
 - Sirf **aik user** (aap). Main screen par username + password.
@@ -76,6 +75,15 @@ Har entry mein: date, account, amount, payment method, reference, remarks.
 5. Admin panel + delete log + restore
 6. Shortcuts, offline install, backup/restore
 
----
-### Aage barhne se pehle bata dein
-1. Data sirf aik machine par offline (bilkul free), ya dono machines mein cloud sync (monthly free allowance mein aam tor par cover ho jata hai)?
+## 10. Printing (professional formats)
+- A4 aur A5 size, company naam/logo header, print date-time, page numbers, footer mein signature line.
+- **Voucher / Receipt**: voucher no., date, party naam + short ID, particulars, amount (figures + words mein), payment method, cheque/bank details.
+- **Party Ledger**: date, voucher no., particulars, debit, credit, running balance, opening/closing balance.
+- **Cash Book / Day Book**, **Worker Ledger**, **Expense Report** (category/tag filter ke saath).
+- Print se pehle columns choose karne ka option; PDF aur Excel export.
+
+## 11. Design
+- Clean, modern accounting-software look: calm neutral background, aik strong primary color, inward ke liye green aur outward ke liye red accents.
+- Saaf fonts, aligned tables, amounts right-aligned, consistent buttons aur forms.
+- Left sidebar navigation, upar search bar, aur dashboard cards.
+- Start se pehle aap ko 3 design options dikhaunga, un mein se aap aik choose karenge.
