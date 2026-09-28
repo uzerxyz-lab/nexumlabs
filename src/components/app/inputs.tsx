@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, forwardRef } from "react";
 import { Input } from "@/components/ui/input";
-import { titleCase } from "@/lib/format";
+import { titleCase, fmtDateTime } from "@/lib/format";
+import logo from "@/assets/mussa-logo.png.asset.json";
 import { searchAccounts, useData, ACCOUNT_TYPES, type Account } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -146,14 +147,20 @@ export function Amount({ value, flow }: { value: number; flow?: "in" | "out" | "
   );
 }
 
-export function PrintHeader({ title, sub }: { title: string; sub?: string }) {
+export function PrintHeader({ title, sub, always }: { title: string; sub?: string; always?: boolean }) {
   const d = useData();
   return (
-    <div className="print-only mb-4 border-b pb-3">
-      <div className="text-xl font-bold">{d.company.name || "Cash Book"}</div>
-      {d.company.address && <div className="text-xs">{d.company.address} {d.company.phone && `· ${d.company.phone}`}</div>}
-      <div className="mt-2 flex justify-between text-sm">
-        <span className="font-semibold">{title}</span>
+    <div className={cn(!always && "print-only", "mb-4 border-b-2 border-foreground pb-3")}>
+      <div className="flex items-end justify-between gap-4">
+        <img src={logo.url} alt="Mussa Enterprises" className="h-12 w-auto" />
+        <div className="text-right text-xs text-muted-foreground">
+          {d.company.address && <div>{d.company.address}</div>}
+          {d.company.phone && <div>{d.company.phone}</div>}
+          <div>Printed: {fmtDateTime(new Date().toISOString())}</div>
+        </div>
+      </div>
+      <div className="mt-3 flex justify-between text-sm">
+        <span className="font-semibold uppercase tracking-wide">{title}</span>
         <span>{sub}</span>
       </div>
     </div>

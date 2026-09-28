@@ -10,33 +10,74 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountsRouteImport } from './routes/accounts'
+import { Route as EntriesRouteImport } from './routes/entries'
+import { Route as LedgerIdRouteImport } from './routes/ledger.$id'
+import { Route as VoucherIdRouteImport } from './routes/voucher.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountsRoute = AccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntriesRoute = EntriesRouteImport.update({
+  id: '/entries',
+  path: '/entries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerIdRoute = LedgerIdRouteImport.update({
+  id: '/ledger/$id',
+  path: '/ledger/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoucherIdRoute = VoucherIdRouteImport.update({
+  id: '/voucher/$id',
+  path: '/voucher/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accounts': typeof AccountsRoute
+  '/entries': typeof EntriesRoute
+  '/ledger/$id': typeof LedgerIdRoute
+  '/voucher/$id': typeof VoucherIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accounts': typeof AccountsRoute
+  '/entries': typeof EntriesRoute
+  '/ledger/$id': typeof LedgerIdRoute
+  '/voucher/$id': typeof VoucherIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accounts': typeof AccountsRoute
+  '/entries': typeof EntriesRoute
+  '/ledger/$id': typeof LedgerIdRoute
+  '/voucher/$id': typeof VoucherIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/accounts' | '/entries' | '/ledger/$id' | '/voucher/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/accounts' | '/entries' | '/ledger/$id' | '/voucher/$id'
+  id:
+    '__root__' | '/' | '/accounts' | '/entries' | '/ledger/$id' | '/voucher/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountsRoute: typeof AccountsRoute
+  EntriesRoute: typeof EntriesRoute
+  LedgerIdRoute: typeof LedgerIdRoute
+  VoucherIdRoute: typeof VoucherIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +89,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accounts': {
+      id: '/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entries': {
+      id: '/entries'
+      path: '/entries'
+      fullPath: '/entries'
+      preLoaderRoute: typeof EntriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger/$id': {
+      id: '/ledger/$id'
+      path: '/ledger/$id'
+      fullPath: '/ledger/$id'
+      preLoaderRoute: typeof LedgerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voucher/$id': {
+      id: '/voucher/$id'
+      path: '/voucher/$id'
+      fullPath: '/voucher/$id'
+      preLoaderRoute: typeof VoucherIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountsRoute: AccountsRoute,
+  EntriesRoute: EntriesRoute,
+  LedgerIdRoute: LedgerIdRoute,
+  VoucherIdRoute: VoucherIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
