@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
 import { todayISO, amountInWords } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+const DRAFT = "cashbook-entry-draft";
 const TYPE_ORDER: EntryType[] = ["inward", "outward", "sale", "purchase", "salary", "advance", "expense"];
 
 export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initial?: Entry; onSaved?: (e?: Entry) => void; defaultType?: EntryType }) {
@@ -28,6 +29,38 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
   const [formKey, setFormKey] = useState(0);
 
   const meta = ENTRY_TYPES[type];
+
+  // Auto-draft: keeps unsaved typing safe across power cuts / accidental close.
+  useEffect(() => {
+    if (initial) return;
+    try {
+      const raw = localStorage.getItem(DRAFT);
+      if (!raw) return;
+      const dr = JSON.parse(raw);
+      if (!dr.amount && !dr.particulars && !dr.accountId) return;
+      toast("Unsaved draft recovered. Continue?", {
+        duration: 15000,
+        action: { label: "Restore", onClick: () => { setType(dr.type); setDate(dr.date); setAccountId(dr.accountId); setAmount(dr.amount); setParticulars(dr.particulars); setMethod(dr.method); setChequeNo(dr.chequeNo); setBank(dr.bank); setReference(dr.reference); setCategoryId(dr.categoryId); setTagId(dr.tagId); setFormKey((k) => k + 1); } },
+        cancel: { label: "Discard", onClick: () => localStorage.removeItem(DRAFT) },
+      });
+    } catch { /* ignore */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (initial) return;
+    const t = setTimeout(() => {
+      if (amount || particulars || accountId) localStorage.setItem(DRAFT, JSON.stringify({ type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId, tagId }));
+      else localStorage.removeItem(DRAFT);
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [initial, type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId, tagId]);
+
+  useEffect(() => {
+    if (initial) return;
+    const h = (e: BeforeUnloadEvent) => { if (amount) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", h);
+    return () => window.removeEventListener("beforeunload", h);
+  }, [initial, amount]);
   const amt = Number(amount.replace(/,/g, ""));
 
   const reset = () => {
@@ -39,9 +72,8 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
     ev?.preventDefault();
     if (meta.party && !accountId) return toast.error("Please select an account");
     if (!amt || amt <= 0) return toast.error("Please enter a valid amount");
-    if (type === "expense" && !categoryId) return toast.error("Please select an expense category");
     const payload = {
-      type, date, amount: amt, particulars: particulars.trim(),
+      type, date, amount: amt, particulars: particulars.trim() || (type === "expense" ? d.categories.find((c) => c.id === categoryId)?.name ?? "Expense" : ENTRY_TYPES[type].label),
       accountId: meta.party ? accountId : undefined,
       method: meta.cash ? method : undefined,
       chequeNo: meta.cash && method === "cheque" ? chequeNo : undefined,
@@ -61,6 +93,7 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
       const e = addEntry(payload);
       toast.success(`Saved · Voucher V-${e.voucherNo}`);
       reset();
+      localStorage.removeItem(DRAFT);
       onSaved?.(e);
     }
   };
@@ -108,7 +141,7 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
           <Field label="Category" className="lg:col-span-2">
             <div className="flex gap-2">
               <NativeSelect value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                <option value="">Select category…</option>
+                <option value="">Select category (optional)…</option>
                 {d.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </NativeSelect>
               <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => addCat("categories")}>+ New</Button>

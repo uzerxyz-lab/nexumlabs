@@ -7,7 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountSearch, Field, TitleInput } from "./inputs";
-import { checkPw, loadData, redo, setupAuth, undo, useData, useLoaded } from "@/lib/db";
+import { checkPw, loadData, redo, setupAuth, takeSnapshot, undo, useData, useLoaded } from "@/lib/db";
+import logo from "@/assets/mussa-logo.png.asset.json";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -49,6 +50,9 @@ function useShortcuts() {
       } else if (k === "f") {
         e.preventDefault();
         (document.getElementById("global-search") as HTMLInputElement | null)?.focus();
+      } else if (k === "p") {
+        e.preventDefault();
+        window.print();
       } else if (k === "n") {
         e.preventDefault();
         navigate({ to: "/" }).then(() => setTimeout(() => document.getElementById("entry-account")?.focus() ?? document.getElementById("entry-amount")?.focus(), 50));
@@ -76,14 +80,22 @@ export function AppShell() {
 
 function Shell({ onLogout }: { onLogout: () => void }) {
   useShortcuts();
-  const d = useData();
+  useEffect(() => {
+    takeSnapshot();
+    const t = setInterval(takeSnapshot, 30 * 60 * 1000);
+    const h = () => takeSnapshot();
+    window.addEventListener("beforeunload", h);
+    return () => { clearInterval(t); window.removeEventListener("beforeunload", h); };
+  }, []);
   const navigate = useNavigate();
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="no-print sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
-        <div className="border-b border-sidebar-border px-5 py-5">
-          <div className="text-xs uppercase tracking-widest text-sidebar-primary">Cash Book</div>
-          <div className="mt-1 truncate text-base font-semibold text-sidebar-accent-foreground">{d.company.name || "My Business"}</div>
+        <div className="border-b border-sidebar-border p-4">
+          <div className="rounded-md bg-card px-3 py-2.5">
+            <img src={logo.url} alt="Mussa Enterprises" className="h-auto w-full" />
+          </div>
+          <div className="mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-sidebar-primary">Cash Book & Ledger</div>
         </div>
         <nav className="flex-1 space-y-0.5 p-3">
           {NAV.map((n) => (
@@ -131,7 +143,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
 }
 
 function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) {
-  const [company, setCompany] = useState("");
+  const [company, setCompany] = useState("Mussa Enterprises");
   const [username, setUsername] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -154,7 +166,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-sidebar p-12 text-sidebar-foreground lg:flex">
-        <div className="text-xs uppercase tracking-widest text-sidebar-primary">Cash Book</div>
+        <div className="text-xs uppercase tracking-widest text-sidebar-primary">Mussa Enterprises · Cash Book</div>
         <div>
           <h2 className="text-4xl font-semibold leading-tight text-sidebar-accent-foreground">Every rupee in,<br />every rupee out.</h2>
           <p className="mt-4 max-w-sm text-sm">Sales, purchases, payments, salaries and expenses — recorded, searchable and safe on this computer.</p>
@@ -163,7 +175,8 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
       </div>
       <div className="flex items-center justify-center bg-background p-6">
         <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border bg-card p-8 shadow-sm">
-          <div>
+          <img src={logo.url} alt="Mussa Enterprises" className="mx-auto mb-2 h-auto w-64" />
+          <div className="border-t pt-4">
             <h1 className="text-xl font-semibold">{firstRun ? "Set up your Cash Book" : "Sign in"}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{firstRun ? "Create your login. You will use this every time." : "Enter your username and password."}</p>
           </div>

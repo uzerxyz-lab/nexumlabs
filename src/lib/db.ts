@@ -378,7 +378,7 @@ export function searchAccounts(d: Data, q: string, limit = 8) {
   if (!n) return [];
   const list = liveAccounts(d);
   const starts = list.filter((a) => norm(a.name).startsWith(n) || norm(a.code).startsWith(n));
-  const contains = list.filter((a) => !starts.includes(a) && (norm(a.name).includes(n) || norm(a.code).includes(n) || norm(a.phone).includes(n)));
+  const contains = list.filter((a) => !starts.includes(a) && (norm(a.name).includes(n) || norm(a.code).includes(n) || norm(a.phone).includes(n) || norm(a.address).includes(n)));
   return [...starts, ...contains].slice(0, limit);
 }
 
@@ -397,4 +397,29 @@ export function importJSON(text: string) {
   commit((d) => {
     Object.assign(d, { ...empty(), ...incoming, auth: d.auth ?? incoming.auth });
   });
+}
+
+/* ---------- rolling snapshots (auto-backup) ---------- */
+const SNAP = "cashbook-snapshots";
+export interface Snapshot { at: string; data: string }
+export function getSnapshots(): Snapshot[] {
+  try { return JSON.parse(localStorage.getItem(SNAP) || "[]"); } catch { return []; }
+}
+export function takeSnapshot() {
+  if (!loaded) return;
+  const list = getSnapshots();
+  const json = JSON.stringify(data);
+  if (list[0]?.data === json) return;
+  list.unshift({ at: new Date().toISOString(), data: json });
+  try { localStorage.setItem(SNAP, JSON.stringify(list.slice(0, 10))); } catch { localStorage.setItem(SNAP, JSON.stringify(list.slice(0, 3))); }
+}
+export function restoreSnapshot(at: string) {
+  const s = getSnapshots().find((x) => x.at === at);
+  if (!s) return;
+  const parsed = JSON.parse(s.data);
+  commit((d) => { Object.assign(d, { ...empty(), ...parsed, auth: d.auth }); });
+}
+export async function changePassword(pw: string) {
+  const hash = await hashPw(pw);
+  commit((d) => { if (d.auth) d.auth.hash = hash; }, false);
 }
