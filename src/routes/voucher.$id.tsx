@@ -17,7 +17,7 @@ export const Route = createFileRoute("/voucher/$id")({
   component: VoucherPage,
 });
 
-function Row({ label, value }: { label: string; value?: string }) {
+function Row({ label, value }: { label: string; value?: string | undefined }) {
   if (!value) return null;
   return (
     <div className="grid grid-cols-3 border-b py-2 text-sm">

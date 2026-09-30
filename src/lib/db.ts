@@ -64,7 +64,7 @@ export interface Data {
   seq: number;
   voucherSeq: number;
   company: { name: string; address: string; phone: string };
-  auth?: { username: string | undefined; hash: string };
+  auth?: { username: string; hash: string } | undefined;
 }
 
 export const ENTRY_TYPES: Record<EntryType, { label: string; cash: boolean; party: boolean; flow: "in" | "out" | "none" }> = {
@@ -294,10 +294,10 @@ export function restoreLog(logIds: string[]) {
       } else if (l.before) {
         if (l.kind === "account") {
           const i = d.accounts.findIndex((x) => x.id === l.refId);
-          if (i >= 0) d.accounts[i] = { ...(l.before as Account), deletedAt: d.accounts[i].deletedAt };
+          if (i >= 0) d.accounts[i] = { ...(l.before as Account), deletedAt: d.accounts[i]!.deletedAt };
         } else {
           const i = d.entries.findIndex((x) => x.id === l.refId);
-          if (i >= 0) d.entries[i] = { ...(l.before as Entry), deletedAt: d.entries[i].deletedAt };
+          if (i >= 0) d.entries[i] = { ...(l.before as Entry), deletedAt: d.entries[i]!.deletedAt };
         }
       }
       l.restoredAt = now;
