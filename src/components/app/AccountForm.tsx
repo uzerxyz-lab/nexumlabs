@@ -16,7 +16,7 @@ export function AccountForm({ initial, onSaved }: { initial?: Account; onSaved?:
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return toast.error("Account name is required");
+    if (!name.trim()) { toast.error("Account name is required"); return; }
     const payload = { name: name.trim(), type, phone: phone.trim(), address: address.trim(), openingBalance: Number(opening.replace(/,/g, "")) || 0 };
     if (initial) {
       updateAccount(initial.id, payload);

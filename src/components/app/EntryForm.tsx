@@ -70,8 +70,8 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
 
   const submit = (ev?: React.FormEvent) => {
     ev?.preventDefault();
-    if (meta.party && !accountId) return toast.error("Please select an account");
-    if (!amt || amt <= 0) return toast.error("Please enter a valid amount");
+    if (meta.party && !accountId) { toast.error("Please select an account"); return; }
+    if (!amt || amt <= 0) { toast.error("Please enter a valid amount"); return; }
     const payload = {
       type, date, amount: amt, particulars: particulars.trim() || (type === "expense" ? d.categories.find((c) => c.id === categoryId)?.name ?? "Expense" : ENTRY_TYPES[type].label),
       accountId: meta.party ? accountId : undefined,
