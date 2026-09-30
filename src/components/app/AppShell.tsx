@@ -151,11 +151,11 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !pw) return toast.error("Username and password are required");
+    if (!username.trim() || !pw) { toast.error("Username and password are required"); return; }
     setBusy(true);
     if (firstRun) {
-      if (pw.length < 4) { setBusy(false); return toast.error("Password must be at least 4 characters"); }
-      if (pw !== pw2) { setBusy(false); return toast.error("Passwords do not match"); }
+      if (pw.length < 4) { setBusy(false); { toast.error("Password must be at least 4 characters"); return; } }
+      if (pw !== pw2) { setBusy(false); { toast.error("Passwords do not match"); return; } }
       await setupAuth(username.trim(), pw, company.trim());
       onDone();
     } else if (await checkPw(pw, username)) onDone();

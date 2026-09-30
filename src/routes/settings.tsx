@@ -43,8 +43,8 @@ function SettingsPage() {
 
         <form className="space-y-4 rounded-lg border bg-card p-5" onSubmit={async (e) => {
           e.preventDefault();
-          if (!(await checkPw(oldPw))) return toast.error("Current password is wrong");
-          if (pw.length < 4) return toast.error("New password must be at least 4 characters");
+          if (!(await checkPw(oldPw))) { toast.error("Current password is wrong"); return; }
+          if (pw.length < 4) { toast.error("New password must be at least 4 characters"); return; }
           await changePassword(pw); setOldPw(""); setPw(""); toast.success("Password changed");
         }}>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Change Password</h2>

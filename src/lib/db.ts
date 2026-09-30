@@ -15,7 +15,7 @@ export interface Account {
   address: string;
   openingBalance: number;
   createdAt: string;
-  deletedAt?: string;
+  deletedAt?: string | undefined;
 }
 
 export interface Entry {
@@ -23,19 +23,19 @@ export interface Entry {
   voucherNo: number;
   type: EntryType;
   date: string;
-  accountId?: string;
+  accountId?: string | undefined;
   amount: number;
-  method?: PayMethod;
-  chequeNo?: string;
-  bank?: string;
-  reference?: string;
-  chequeStatus?: ChequeStatus;
+  method?: PayMethod | undefined;
+  chequeNo?: string | undefined;
+  bank?: string | undefined;
+  reference?: string | undefined;
+  chequeStatus?: ChequeStatus | undefined;
   particulars: string;
-  categoryId?: string;
-  tagId?: string;
+  categoryId?: string | undefined;
+  tagId?: string | undefined;
   createdAt: string;
-  updatedAt?: string;
-  deletedAt?: string;
+  updatedAt?: string | undefined;
+  deletedAt?: string | undefined;
 }
 
 export interface Named {
@@ -50,9 +50,9 @@ export interface LogItem {
   refId: string;
   label: string;
   at: string;
-  before?: Account | Entry;
-  childIds?: string[];
-  restoredAt?: string;
+  before?: Account | Entry | undefined;
+  childIds?: string[] | undefined;
+  restoredAt?: string | undefined;
 }
 
 export interface Data {
@@ -64,7 +64,7 @@ export interface Data {
   seq: number;
   voucherSeq: number;
   company: { name: string; address: string; phone: string };
-  auth?: { username: string; hash: string };
+  auth?: { username: string | undefined; hash: string };
 }
 
 export const ENTRY_TYPES: Record<EntryType, { label: string; cash: boolean; party: boolean; flow: "in" | "out" | "none" }> = {
@@ -382,7 +382,7 @@ export function searchAccounts(d: Data, q: string, limit = 8) {
   return [...starts, ...contains].slice(0, limit);
 }
 
-export function findDuplicate(d: Data, e: { accountId?: string; amount: number; date: string; type: EntryType }, ignoreId?: string) {
+export function findDuplicate(d: Data, e: { accountId?: string | undefined; amount: number; date: string; type: EntryType }, ignoreId?: string) {
   return liveEntries(d).find((x) => x.id !== ignoreId && x.type === e.type && x.accountId === e.accountId && x.amount === e.amount && x.date === e.date);
 }
 

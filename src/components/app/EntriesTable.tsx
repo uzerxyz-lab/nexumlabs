@@ -44,7 +44,7 @@ export function EntriesTable({
           <tr>
             {selectable && (
               <th className="w-10 px-3 py-2.5">
-                <Checkbox checked={entries.length > 0 && entries.every((e) => selected?.has(e.id))} onCheckedChange={onToggleAll} />
+                <Checkbox checked={entries.length > 0 && entries.every((e) => selected?.has(e.id))} onCheckedChange={() => onToggleAll?.()} />
               </th>
             )}
             <th className="px-3 py-2.5">Voucher</th>
@@ -67,7 +67,7 @@ export function EntriesTable({
               <tr key={e.id} onClick={() => onRowClick?.(e)} className={cn("border-t transition-colors hover:bg-surface", onRowClick && "cursor-pointer", selected?.has(e.id) && "bg-accent")}>
                 {selectable && (
                   <td className="px-3 py-2" onClick={(ev) => ev.stopPropagation()}>
-                    <Checkbox checked={selected?.has(e.id)} onCheckedChange={() => onToggle?.(e.id)} />
+                    <Checkbox checked={!!selected?.has(e.id)} onCheckedChange={() => onToggle?.(e.id)} />
                   </td>
                 )}
                 <td className="num px-3 py-2 text-muted-foreground">V-{e.voucherNo}</td>
