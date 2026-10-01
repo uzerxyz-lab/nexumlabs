@@ -15,6 +15,8 @@ export const Route = createFileRoute("/settings")({
       { name: "description", content: "Company details, password, backups and restore points." },
       { property: "og:title", content: "Settings & Backup — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Company details, password, backups and restore points." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: SettingsPage,

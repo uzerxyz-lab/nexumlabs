@@ -12,6 +12,8 @@ export const Route = createFileRoute("/voucher/$id")({
       { name: "description", content: "Printable payment / receipt voucher." },
       { property: "og:title", content: "Voucher — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Printable payment / receipt voucher." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: VoucherPage,

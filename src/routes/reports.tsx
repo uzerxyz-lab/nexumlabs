@@ -15,6 +15,8 @@ export const Route = createFileRoute("/reports")({
       { name: "description", content: "Receivables, payables, worker salaries and period totals." },
       { property: "og:title", content: "Reports — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Receivables, payables, worker salaries and period totals." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Reports,

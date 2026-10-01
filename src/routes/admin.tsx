@@ -22,6 +22,8 @@ export const Route = createFileRoute("/admin")({
       { name: "description", content: "Edit or delete accounts and entries, with a recycle bin to restore anything." },
       { property: "og:title", content: "Admin Panel — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Edit or delete accounts and entries, with a recycle bin to restore anything." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Admin,
