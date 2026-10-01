@@ -16,6 +16,8 @@ export const Route = createFileRoute("/ledger/$id")({
       { name: "description", content: "Date-wise party statement with debit, credit and running balance." },
       { property: "og:title", content: "Party Ledger — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Date-wise party statement with debit, credit and running balance." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: LedgerPage,

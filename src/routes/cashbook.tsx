@@ -16,6 +16,8 @@ export const Route = createFileRoute("/cashbook")({
       { name: "description", content: "Day book, cash in hand, bank balance, pending cheques and day-end cash tally." },
       { property: "og:title", content: "Cash Book — Mussa Enterprises" },
       { property: "og:description", content: "Day book, cash in hand, bank balance, pending cheques and day-end cash tally." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CashBook,

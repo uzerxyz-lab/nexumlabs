@@ -16,6 +16,8 @@ export const Route = createFileRoute("/expenses")({
       { name: "description", content: "Miscellaneous expenses by category and location with filters and custom categories." },
       { property: "og:title", content: "Expenses — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Miscellaneous expenses by category and location with filters and custom categories." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ExpensesPage,

@@ -15,6 +15,8 @@ export const Route = createFileRoute("/entries")({
       { name: "description", content: "Search and filter every voucher by type, method, category, tag and date." },
       { property: "og:title", content: "All Entries — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Search and filter every voucher by type, method, category, tag and date." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: EntriesPage,

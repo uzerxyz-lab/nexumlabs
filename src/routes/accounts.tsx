@@ -17,6 +17,8 @@ export const Route = createFileRoute("/accounts")({
       { name: "description", content: "Customers, suppliers and workers with auto short IDs and live balances." },
       { property: "og:title", content: "Accounts — Mussa Enterprises Cash Book" },
       { property: "og:description", content: "Customers, suppliers and workers with auto short IDs and live balances." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AccountsPage,
