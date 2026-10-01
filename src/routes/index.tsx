@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, BookOpen, CalendarDays, CirclePlus, Receipt, Scale, Wallet } from "lucide-react";
 import { EntryForm } from "@/components/app/EntryForm";
-import { EntriesTable } from "@/components/app/EntriesTable";
+import { TypeBadge } from "@/components/app/EntriesTable";
 import { Button } from "@/components/ui/button";
 import { accountBalance, cashFlow, liveAccounts, liveEntries, useData, ENTRY_TYPES } from "@/lib/db";
 import { fmtDate, fmtPKR, todayISO } from "@/lib/format";
@@ -23,15 +23,15 @@ export const Route = createFileRoute("/")({
 
 function Stat({ label, value, detail, icon: Icon, tone }: { label: string; value: number; detail: string; icon: typeof Wallet; tone: "success" | "danger" | "primary" | "neutral" }) {
   return (
-    <div className="flex min-h-36 flex-col justify-between rounded-lg border bg-card p-5 shadow-sm">
+    <div className="flex min-h-32 flex-col justify-between rounded-lg border bg-card p-3 shadow-sm sm:min-h-36 sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-md", tone === "success" && "bg-success-soft text-success", tone === "danger" && "bg-danger-soft text-destructive", tone === "primary" && "bg-accent text-primary", tone === "neutral" && "bg-secondary text-secondary-foreground")}>
+        <span className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</span>
+        <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md sm:h-9 sm:w-9", tone === "success" && "bg-success-soft text-success", tone === "danger" && "bg-danger-soft text-destructive", tone === "primary" && "bg-accent text-primary", tone === "neutral" && "bg-secondary text-secondary-foreground")}>
           <Icon className="h-[18px] w-[18px]" />
         </span>
       </div>
       <div>
-        <div className="num break-words text-2xl font-semibold leading-tight text-foreground">{fmtPKR(value)}</div>
+        <div className="num break-words text-lg font-semibold leading-tight text-foreground sm:text-2xl">{fmtPKR(value)}</div>
         <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
       </div>
     </div>
@@ -87,7 +87,7 @@ function Dashboard() {
         <Button asChild variant="outline" size="sm"><Link to="/reports"><BarChart3 className="h-4 w-4" /> View reports</Link></Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat label="Cash in hand" value={cashInHand} detail="Cash payments only · all time" icon={Wallet} tone="primary" />
         <Stat label="Received today" value={cashIn} detail="All payment methods" icon={ArrowDownLeft} tone="success" />
         <Stat label="Paid today" value={cashOut} detail="All payment methods" icon={ArrowUpRight} tone="danger" />
@@ -143,7 +143,24 @@ function Dashboard() {
             <div><h2 className="text-base font-semibold">Recent entries</h2><p className="text-xs text-muted-foreground">Latest vouchers across all accounts</p></div>
             <Link to="/entries" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">All entries <ArrowRight className="h-3.5 w-3.5" /></Link>
           </div>
-          <EntriesTable entries={recent} emptyText="No entries yet. Save your first voucher below." />
+          <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+            {recent.length === 0 ? <p className="px-4 py-10 text-center text-sm text-muted-foreground">No entries yet. Save your first voucher below.</p> : (
+              <div className="divide-y">
+                {recent.map((entry) => {
+                  const account = d.accounts.find((a) => a.id === entry.accountId);
+                  const category = d.categories.find((c) => c.id === entry.categoryId);
+                  return (
+                    <Link key={entry.id} to="/voucher/$id" params={{ id: entry.id }} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface sm:gap-4">
+                      <span className="w-12 shrink-0 num text-xs text-muted-foreground">V-{entry.voucherNo}</span>
+                      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{account?.name ?? category?.name ?? ENTRY_TYPES[entry.type].label}</span><span className="block truncate text-xs text-muted-foreground">{fmtDate(entry.date)} · {entry.particulars}</span></span>
+                      <span className="hidden sm:block"><TypeBadge type={entry.type} /></span>
+                      <span className="num shrink-0 text-right text-xs font-semibold sm:text-sm">{fmtPKR(entry.amount)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
         <section className="min-w-0">
           <div className="mb-3 flex items-center justify-between gap-3">
