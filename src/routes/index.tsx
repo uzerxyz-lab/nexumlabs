@@ -27,19 +27,31 @@ export const Route = createFileRoute("/")({
 
 const ORDER_KEY = "cashbook-tile-order";
 const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense", "entries", "admin"];
-type Tone = "inflow" | "outflow" | "ledger" | "report" | "hero";
+type Tone = "received" | "paid" | "sale" | "purchase" | "account" | "ledger" | "report" | "expense" | "entries" | "admin" | "hero";
 const toneCls: Record<Tone, string> = {
-  inflow: "bg-inflow text-hero-foreground",
-  outflow: "bg-outflow text-hero-foreground",
-  ledger: "bg-ledger text-hero-foreground",
-  report: "bg-report text-hero-foreground",
+  received: "bg-received text-hero-foreground",
+  paid: "bg-paid text-hero-foreground",
+  sale: "bg-sale text-hero-foreground",
+  purchase: "bg-purchase text-hero-foreground",
+  account: "bg-account text-hero-foreground",
+  ledger: "bg-ledger-card text-hero-foreground",
+  report: "bg-report-card text-hero-foreground",
+  expense: "bg-expense-card text-hero-foreground",
+  entries: "bg-entry-card text-hero-foreground",
+  admin: "bg-admin-card text-hero-foreground",
   hero: "bg-hero text-hero-foreground",
 };
 const softCls: Record<Tone, string> = {
-  inflow: "border-inflow/40 bg-inflow/20",
-  outflow: "border-outflow/40 bg-outflow/20",
-  ledger: "border-ledger/40 bg-ledger/20",
-  report: "border-report/40 bg-report/20",
+  received: "border-received/40 bg-received-soft",
+  paid: "border-paid/40 bg-paid-soft",
+  sale: "border-sale/40 bg-sale-soft",
+  purchase: "border-purchase/40 bg-purchase-soft",
+  account: "border-account/40 bg-account-soft",
+  ledger: "border-ledger-card/40 bg-ledger-card-soft",
+  report: "border-report-card/40 bg-report-card-soft",
+  expense: "border-expense-card/40 bg-expense-card-soft",
+  entries: "border-entry-card/40 bg-entry-card-soft",
+  admin: "border-admin-card/40 bg-admin-card-soft",
   hero: "border-hero/40 bg-hero/20",
 };
 
@@ -92,16 +104,16 @@ function Dashboard() {
           </div>
         </div>
       </div>) },
-    inflow: { span: "", node: <StatTile tone="inflow" icon={ArrowDownLeft} label="Received today" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
-    outflow: { span: "", node: <StatTile tone="outflow" icon={ArrowUpRight} label="Paid today" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
-    sale: { span: "", node: <ActionTile tone="inflow" icon={BarChart3} label="Sale" detail={`This month ${fmtPKR(mt("sale"))}`} onClick={() => setEntryType("sale")} /> },
-    purchase: { span: "", node: <ActionTile tone="outflow" icon={ShoppingCart} label="Purchase" detail={`This month ${fmtPKR(mt("purchase"))}`} onClick={() => setEntryType("purchase")} /> },
-    account: { span: "", node: <ActionTile tone="ledger" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
+    inflow: { span: "", node: <StatTile tone="received" icon={ArrowDownLeft} label="Received today" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
+    outflow: { span: "", node: <StatTile tone="paid" icon={ArrowUpRight} label="Paid today" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
+    sale: { span: "", node: <ActionTile tone="sale" icon={BarChart3} label="Sale" detail={`This month ${fmtPKR(mt("sale"))}`} onClick={() => setEntryType("sale")} /> },
+    purchase: { span: "", node: <ActionTile tone="purchase" icon={ShoppingCart} label="Purchase" detail={`This month ${fmtPKR(mt("purchase"))}`} onClick={() => setEntryType("purchase")} /> },
+    account: { span: "", node: <ActionTile tone="account" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
     ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail="Party balances, statements and history" to="/accounts" /> },
     reports: { span: "col-span-2", node: <LinkTile tone="report" icon={Scale} label="Reports" detail="Cash book, sales, purchases, salaries and expenses" to="/reports" /> },
-    expense: { span: "", node: <ActionTile tone="outflow" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
-    entries: { span: "", node: <LinkTile tone="hero" icon={ListOrdered} label="All Entries" detail={`${entries.length} vouchers`} to="/entries" /> },
-    admin: { span: "col-span-2", node: <LinkTile tone="hero" icon={ShieldCheck} label="Admin Panel" detail="Delete, edit and restore from the Recycle Bin" to="/admin" /> },
+    expense: { span: "", node: <ActionTile tone="expense" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
+    entries: { span: "", node: <LinkTile tone="entries" icon={ListOrdered} label="All Entries" detail={`${entries.length} vouchers`} to="/entries" /> },
+    admin: { span: "col-span-2", node: <LinkTile tone="admin" icon={ShieldCheck} label="Admin Panel" detail="Delete, edit and restore from the Recycle Bin" to="/admin" /> },
   };
 
   return (
@@ -168,7 +180,11 @@ function Head({ icon: Icon, label, light, tone }: { icon: typeof Wallet; label: 
 function Mini({ label, value }: { label: string; value: number }) {
   return <div className="rounded-xl bg-hero-foreground/10 p-3"><div className="text-xs opacity-75">{label}</div><div className="num mt-1 truncate font-semibold">{fmtPKR(value)}</div></div>;
 }
-const toneText: Record<Tone, string> = { inflow: "text-inflow", outflow: "text-outflow", ledger: "text-ledger", report: "text-report", hero: "text-hero" };
+const toneText: Record<Tone, string> = {
+  received: "text-received", paid: "text-paid", sale: "text-sale", purchase: "text-purchase",
+  account: "text-account", ledger: "text-ledger-card", report: "text-report-card",
+  expense: "text-expense-card", entries: "text-entry-card", admin: "text-admin-card", hero: "text-hero",
+};
 const tileBase = "glass flex h-full w-full flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5";
 function StatTile({ tone, icon, label, value, onClick, cta }: { tone: Tone; icon: typeof Wallet; label: string; value: number; onClick: () => void; cta: string }) {
   return (

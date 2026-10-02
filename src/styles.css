@@ -74,6 +74,26 @@
   --color-report: var(--report);
   --color-hero: var(--hero);
   --color-hero-foreground: var(--hero-foreground);
+  --color-received: var(--received);
+  --color-received-soft: var(--received-soft);
+  --color-paid: var(--paid);
+  --color-paid-soft: var(--paid-soft);
+  --color-sale: var(--sale);
+  --color-sale-soft: var(--sale-soft);
+  --color-purchase: var(--purchase);
+  --color-purchase-soft: var(--purchase-soft);
+  --color-account: var(--account);
+  --color-account-soft: var(--account-soft);
+  --color-ledger-card: var(--ledger-card);
+  --color-ledger-card-soft: var(--ledger-card-soft);
+  --color-report-card: var(--report-card);
+  --color-report-card-soft: var(--report-card-soft);
+  --color-expense-card: var(--expense-card);
+  --color-expense-card-soft: var(--expense-card-soft);
+  --color-entry-card: var(--entry-card);
+  --color-entry-card-soft: var(--entry-card-soft);
+  --color-admin-card: var(--admin-card);
+  --color-admin-card-soft: var(--admin-card-soft);
 }
 
 :root {
@@ -117,12 +137,32 @@
   --sidebar-accent-foreground: oklch(0.98 0.004 250);
   --sidebar-border: oklch(0.3 0.03 257);
   --sidebar-ring: oklch(0.72 0.1 195);
-  --inflow: #6A8B80;
-  --outflow: #BD6C73;
-  --ledger: #3F5B8D;
-  --report: #6B597F;
-  --hero: #2E365A;
+  --inflow: oklch(0.58 0.07 165);
+  --outflow: oklch(0.61 0.12 18);
+  --ledger: oklch(0.47 0.1 258);
+  --report: oklch(0.48 0.09 310);
+  --hero: oklch(0.32 0.07 270);
   --hero-foreground: oklch(0.98 0.005 260);
+  --received: oklch(0.55 0.14 245);
+  --received-soft: oklch(0.96 0.025 245);
+  --paid: oklch(0.59 0.17 18);
+  --paid-soft: oklch(0.96 0.035 18);
+  --sale: oklch(0.55 0.11 165);
+  --sale-soft: oklch(0.96 0.03 165);
+  --purchase: oklch(0.61 0.13 78);
+  --purchase-soft: oklch(0.97 0.04 88);
+  --account: oklch(0.5 0.15 278);
+  --account-soft: oklch(0.96 0.025 278);
+  --ledger-card: oklch(0.47 0.045 255);
+  --ledger-card-soft: oklch(0.965 0.012 255);
+  --report-card: oklch(0.51 0.13 310);
+  --report-card-soft: oklch(0.965 0.025 310);
+  --expense-card: oklch(0.61 0.14 48);
+  --expense-card-soft: oklch(0.97 0.04 60);
+  --entry-card: oklch(0.53 0.1 215);
+  --entry-card-soft: oklch(0.96 0.025 215);
+  --admin-card: oklch(0.5 0.13 350);
+  --admin-card-soft: oklch(0.96 0.03 350);
 }
 
 .dark {
@@ -141,11 +181,31 @@
   --accent-foreground: oklch(0.94 0.01 260);
   --border: oklch(0.34 0.03 265);
   --input: oklch(0.38 0.03 265);
-  --inflow: #7FA397;
-  --outflow: #D08088;
-  --ledger: #6A86BA;
-  --report: #9784AD;
-  --hero: #3A4472;
+  --inflow: oklch(0.69 0.08 165);
+  --outflow: oklch(0.7 0.13 18);
+  --ledger: oklch(0.66 0.1 258);
+  --report: oklch(0.67 0.1 310);
+  --hero: oklch(0.41 0.08 270);
+  --received: oklch(0.7 0.13 245);
+  --received-soft: oklch(0.27 0.045 245);
+  --paid: oklch(0.72 0.14 18);
+  --paid-soft: oklch(0.27 0.05 18);
+  --sale: oklch(0.7 0.1 165);
+  --sale-soft: oklch(0.27 0.04 165);
+  --purchase: oklch(0.75 0.12 78);
+  --purchase-soft: oklch(0.28 0.05 78);
+  --account: oklch(0.7 0.13 278);
+  --account-soft: oklch(0.28 0.05 278);
+  --ledger-card: oklch(0.7 0.045 255);
+  --ledger-card-soft: oklch(0.29 0.025 255);
+  --report-card: oklch(0.72 0.11 310);
+  --report-card-soft: oklch(0.28 0.045 310);
+  --expense-card: oklch(0.73 0.13 48);
+  --expense-card-soft: oklch(0.28 0.045 48);
+  --entry-card: oklch(0.72 0.09 215);
+  --entry-card-soft: oklch(0.28 0.04 215);
+  --admin-card: oklch(0.69 0.12 350);
+  --admin-card-soft: oklch(0.27 0.045 350);
 }
 
 @utility glass {
