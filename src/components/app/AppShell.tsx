@@ -202,7 +202,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
           </div>
           {(firstRun || forgot) && (
             <Field label="Company / Business Name">
-              <TitleInput value={forgot && company === "Mussa Enterprises" ? company : company} onValueChange={setCompany} placeholder="e.g. Ahmad Steel" />
+              <TitleInput value={company} onValueChange={setCompany} placeholder="e.g. Ahmad Steel" />
             </Field>
           )}
           <Field label="Username">
