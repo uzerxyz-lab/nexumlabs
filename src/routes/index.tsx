@@ -1,19 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, BookOpen, CalendarDays, CirclePlus, Receipt, Scale, Wallet } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import {
+  ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, ChevronLeft, ChevronRight, GripVertical, Receipt,
+  RotateCcw, ShieldCheck, ShoppingCart, UserPlus, Wallet, Scale, ListOrdered,
+} from "lucide-react";
 import { EntryForm } from "@/components/app/EntryForm";
-import { TypeBadge } from "@/components/app/EntriesTable";
-import { Button } from "@/components/ui/button";
-import { accountBalance, cashFlow, liveAccounts, liveEntries, useData, ENTRY_TYPES } from "@/lib/db";
-import { fmtDate, fmtPKR, todayISO } from "@/lib/format";
+import { AccountForm } from "@/components/app/AccountForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { accountBalance, cashFlow, liveAccounts, liveEntries, useData, ENTRY_TYPES, type EntryType } from "@/lib/db";
+import { fmtPKR, todayISO } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Dashboard — Mussa Enterprises Cash Book" },
-      { name: "description", content: "Today's cash in, cash out, receivables and quick voucher entry." },
+      { name: "description", content: "Bento dashboard: cash summary, quick sale/purchase, accounts, ledgers and reports." },
       { property: "og:title", content: "Dashboard — Mussa Enterprises Cash Book" },
-      { property: "og:description", content: "Today's cash in, cash out, receivables and quick voucher entry." },
+      { property: "og:description", content: "Bento dashboard: cash summary, quick sale/purchase, accounts, ledgers and reports." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -21,179 +25,171 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-function Stat({ label, value, detail, icon: Icon, tone }: { label: string; value: number; detail: string; icon: typeof Wallet; tone: "success" | "danger" | "primary" | "neutral" }) {
-  return (
-    <div className="flex min-h-32 flex-col justify-between rounded-lg border bg-card p-3 shadow-sm sm:min-h-36 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</span>
-        <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md sm:h-9 sm:w-9", tone === "success" && "bg-success-soft text-success", tone === "danger" && "bg-danger-soft text-destructive", tone === "primary" && "bg-accent text-primary", tone === "neutral" && "bg-secondary text-secondary-foreground")}>
-          <Icon className="h-[18px] w-[18px]" />
-        </span>
-      </div>
-      <div>
-        <div className="num break-words text-lg font-semibold leading-tight text-foreground sm:text-2xl">{fmtPKR(value)}</div>
-        <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
-      </div>
-    </div>
-  );
-}
+const ORDER_KEY = "cashbook-tile-order";
+const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense", "entries", "admin"];
+type Tone = "inflow" | "outflow" | "ledger" | "report" | "hero";
+const toneCls: Record<Tone, string> = {
+  inflow: "bg-inflow text-hero-foreground",
+  outflow: "bg-outflow text-hero-foreground",
+  ledger: "bg-ledger text-hero-foreground",
+  report: "bg-report text-hero-foreground",
+  hero: "bg-hero text-hero-foreground",
+};
+const softCls: Record<Tone, string> = {
+  inflow: "border-inflow/30 bg-inflow/12",
+  outflow: "border-outflow/30 bg-outflow/12",
+  ledger: "border-ledger/30 bg-ledger/12",
+  report: "border-report/30 bg-report/12",
+  hero: "border-hero/30 bg-hero/12",
+};
 
 function Dashboard() {
   const d = useData();
   const today = todayISO();
   const entries = liveEntries(d);
-  const todays = entries.filter((e) => e.date === today);
-  const cashIn = todays.filter((e) => ENTRY_TYPES[e.type].flow === "in" && e.chequeStatus !== "bounced").reduce((s, e) => s + e.amount, 0);
-  const cashOut = todays.filter((e) => ENTRY_TYPES[e.type].flow === "out" && e.chequeStatus !== "bounced").reduce((s, e) => s + e.amount, 0);
+  const todays = entries.filter((e) => e.date === today && e.chequeStatus !== "bounced");
+  const cashIn = todays.filter((e) => ENTRY_TYPES[e.type].flow === "in").reduce((s, e) => s + e.amount, 0);
+  const cashOut = todays.filter((e) => ENTRY_TYPES[e.type].flow === "out").reduce((s, e) => s + e.amount, 0);
   const cashInHand = entries.filter((e) => e.method === "cash").reduce((s, e) => s + cashFlow(e), 0);
-  const balances = liveAccounts(d).map((a) => ({ a, b: accountBalance(d, a.id) }));
-  const receivable = balances.filter((x) => x.b > 0).reduce((s, x) => s + x.b, 0);
-  const payable = balances.filter((x) => x.b < 0).reduce((s, x) => s - x.b, 0);
-  const recent = [...entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
-  const top = balances.filter((x) => x.b !== 0).sort((x, y) => Math.abs(y.b) - Math.abs(x.b)).slice(0, 5);
-  const monthEntries = entries.filter((e) => e.date.startsWith(today.slice(0, 7)));
-  const monthTotal = (type: typeof entries[number]["type"]) => monthEntries.filter((e) => e.type === type).reduce((sum, e) => sum + e.amount, 0);
-  const reportRows = [
-    { label: "Sales", value: monthTotal("sale"), icon: BarChart3, tone: "text-primary" },
-    { label: "Purchases", value: monthTotal("purchase"), icon: BookOpen, tone: "text-muted-foreground" },
-    { label: "Expenses", value: monthTotal("expense"), icon: Receipt, tone: "text-destructive" },
-    { label: "Salaries & advances", value: monthTotal("salary") + monthTotal("advance"), icon: Wallet, tone: "text-warning" },
-  ];
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(`${today}T12:00:00`);
-    date.setDate(date.getDate() - (6 - i));
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    const dayEntries = entries.filter((e) => e.date === key && e.chequeStatus !== "bounced");
-    return {
-      key,
-      label: date.toLocaleDateString("en-US", { weekday: "short" }),
-      date: date.getDate(),
-      incoming: dayEntries.filter((e) => ENTRY_TYPES[e.type].flow === "in").reduce((s, e) => s + e.amount, 0),
-      outgoing: dayEntries.filter((e) => ENTRY_TYPES[e.type].flow === "out").reduce((s, e) => s + e.amount, 0),
-    };
-  });
-  const chartMax = Math.max(1, ...days.flatMap((day) => [day.incoming, day.outgoing]));
-  const weekIn = days.reduce((s, day) => s + day.incoming, 0);
-  const weekOut = days.reduce((s, day) => s + day.outgoing, 0);
+  const balances = liveAccounts(d).map((a) => accountBalance(d, a.id));
+  const receivable = balances.filter((b) => b > 0).reduce((s, b) => s + b, 0);
+  const payable = balances.filter((b) => b < 0).reduce((s, b) => s - b, 0);
+  const month = entries.filter((e) => e.date.startsWith(today.slice(0, 7)));
+  const mt = (t: EntryType) => month.filter((e) => e.type === t).reduce((s, e) => s + e.amount, 0);
+
+  const [order, setOrder] = useState(DEFAULT_ORDER);
+  const [drag, setDrag] = useState<string>();
+  const [entryType, setEntryType] = useState<EntryType>();
+  const [newAcc, setNewAcc] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(ORDER_KEY) ?? "null") as string[] | null;
+      if (saved) setOrder([...saved.filter((k) => DEFAULT_ORDER.includes(k)), ...DEFAULT_ORDER.filter((k) => !saved.includes(k))]);
+    } catch { /* ignore */ }
+  }, []);
+  const save = (o: string[]) => { setOrder(o); localStorage.setItem(ORDER_KEY, JSON.stringify(o)); };
+  const move = (k: string, dir: -1 | 1) => {
+    const i = order.indexOf(k); const j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    const o = [...order]; [o[i], o[j]] = [o[j]!, o[i]!]; save(o);
+  };
+  const dropOn = (target: string) => {
+    if (!drag || drag === target) return;
+    const o = order.filter((k) => k !== drag); o.splice(o.indexOf(target), 0, drag); save(o); setDrag(undefined);
+  };
+
+  const tiles: Record<string, { span: string; node: ReactNode }> = {
+    summary: { span: "col-span-2 row-span-2", node: (
+      <div className={cn("flex h-full flex-col justify-between rounded-2xl p-5 sm:p-6", toneCls.hero)}>
+        <Head icon={Wallet} label="Cash in hand" light />
+        <div>
+          <div className="num text-3xl font-semibold sm:text-4xl">{fmtPKR(cashInHand)}</div>
+          <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+            <Mini label="Receivable" value={receivable} />
+            <Mini label="Payable" value={payable} />
+            <Mini label="Sales this month" value={mt("sale")} />
+            <Mini label="Expenses this month" value={mt("expense")} />
+          </div>
+        </div>
+      </div>) },
+    inflow: { span: "", node: <StatTile tone="inflow" icon={ArrowDownLeft} label="Received today" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
+    outflow: { span: "", node: <StatTile tone="outflow" icon={ArrowUpRight} label="Paid today" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
+    sale: { span: "", node: <ActionTile tone="inflow" icon={BarChart3} label="Sale" detail={`This month ${fmtPKR(mt("sale"))}`} onClick={() => setEntryType("sale")} /> },
+    purchase: { span: "", node: <ActionTile tone="outflow" icon={ShoppingCart} label="Purchase" detail={`This month ${fmtPKR(mt("purchase"))}`} onClick={() => setEntryType("purchase")} /> },
+    account: { span: "", node: <ActionTile tone="ledger" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
+    ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail="Party balances, statements and history" to="/accounts" /> },
+    reports: { span: "col-span-2", node: <LinkTile tone="report" icon={Scale} label="Reports" detail="Cash book, sales, purchases, salaries and expenses" to="/reports" /> },
+    expense: { span: "", node: <ActionTile tone="outflow" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
+    entries: { span: "", node: <LinkTile tone="hero" icon={ListOrdered} label="All Entries" detail={`${entries.length} vouchers`} to="/entries" /> },
+    admin: { span: "col-span-2", node: <LinkTile tone="hero" icon={ShieldCheck} label="Admin Panel" detail="Delete, edit and restore from the Recycle Bin" to="/admin" /> },
+  };
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase text-primary">Mussa Enterprises / Overview</p>
-          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Dashboard</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-4 w-4" /> {fmtDate(today)} · Financial overview</p>
+    <div className="space-y-5 pb-10">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{d.company.name || "Mussa Enterprises"}</p>
+          <h1 className="text-2xl font-semibold">Dashboard</h1>
         </div>
-        <Button asChild variant="outline" size="sm"><Link to="/reports"><BarChart3 className="h-4 w-4" /> View reports</Link></Button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Stat label="Cash in hand" value={cashInHand} detail="Cash payments only · all time" icon={Wallet} tone="primary" />
-        <Stat label="Received today" value={cashIn} detail="All payment methods" icon={ArrowDownLeft} tone="success" />
-        <Stat label="Paid today" value={cashOut} detail="All payment methods" icon={ArrowUpRight} tone="danger" />
-        <Stat label="Net party position" value={receivable - payable} detail="Receivable less payable" icon={Scale} tone="neutral" />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,1fr)]">
-        <section className="min-w-0">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div><h2 className="text-base font-semibold">Payment movement</h2><p className="text-xs text-muted-foreground">Last 7 days · all payment methods</p></div>
-            <Link to="/cashbook" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">Cash book <ArrowRight className="h-3.5 w-3.5" /></Link>
-          </div>
-          <div className="rounded-lg border bg-card p-5 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-4">
-              <div><p className="text-xs text-muted-foreground">Total received</p><p className="num mt-1 text-lg font-semibold text-success">{fmtPKR(weekIn)}</p></div>
-              <div><p className="text-xs text-muted-foreground">Total paid</p><p className="num mt-1 text-lg font-semibold text-destructive">{fmtPKR(weekOut)}</p></div>
-              <div><p className="text-xs text-muted-foreground">Net movement</p><p className="num mt-1 text-lg font-semibold">{fmtPKR(weekIn - weekOut)}</p></div>
-            </div>
-            <div className="mt-5 flex h-32 items-end justify-between gap-2 sm:gap-4" aria-label="Daily receipts and payments over the past seven days">
-              {days.map((day) => (
-                <div key={day.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2" title={`${fmtDate(day.key)} · Received ${fmtPKR(day.incoming)} · Paid ${fmtPKR(day.outgoing)}`}>
-                  <div className="flex h-full w-full max-w-16 items-end justify-center gap-1 rounded-sm border-b border-border bg-surface/50 px-1">
-                    <div className="w-1/2 max-w-5 rounded-t-sm bg-success transition-[height]" style={{ height: `${day.incoming ? Math.max(5, day.incoming / chartMax * 100) : 2}%` }} />
-                    <div className="w-1/2 max-w-5 rounded-t-sm bg-destructive transition-[height]" style={{ height: `${day.outgoing ? Math.max(5, day.outgoing / chartMax * 100) : 2}%` }} />
-                  </div>
-                  <span className="text-center text-[11px] leading-tight text-muted-foreground">{day.label}<span className="block">{day.date}</span></span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex items-center justify-center gap-5 text-xs text-muted-foreground"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-sm bg-success" /> Received</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-sm bg-destructive" /> Paid</span></div>
-          </div>
-        </section>
-        <section className="min-w-0">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div><h2 className="text-base font-semibold">Monthly report</h2><p className="text-xs text-muted-foreground">{new Date(`${today}T12:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p></div>
-            <Link to="/reports" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">Full report <ArrowRight className="h-3.5 w-3.5" /></Link>
-          </div>
-          <div className="rounded-lg border bg-card px-5 shadow-sm">
-            {reportRows.map(({ label, value, icon: Icon, tone }) => (
-              <div key={label} className="flex items-center gap-3 border-b py-4 last:border-0">
-                <Icon className={cn("h-4 w-4 shrink-0", tone)} />
-                <span className="min-w-0 flex-1 text-sm text-muted-foreground">{label}</span>
-                <span className="num text-right text-sm font-semibold">{fmtPKR(value)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,1fr)]">
-        <section className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold">Recent entries</h2><p className="text-xs text-muted-foreground">Latest vouchers across all accounts</p></div>
-            <Link to="/entries" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">All entries <ArrowRight className="h-3.5 w-3.5" /></Link>
-          </div>
-          <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
-            {recent.length === 0 ? <p className="px-4 py-10 text-center text-sm text-muted-foreground">No entries yet. Save your first voucher below.</p> : (
-              <div className="divide-y">
-                {recent.map((entry) => {
-                  const account = d.accounts.find((a) => a.id === entry.accountId);
-                  const category = d.categories.find((c) => c.id === entry.categoryId);
-                  return (
-                    <Link key={entry.id} to="/voucher/$id" params={{ id: entry.id }} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface sm:gap-4">
-                      <span className="w-12 shrink-0 num text-xs text-muted-foreground">V-{entry.voucherNo}</span>
-                      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{account?.name ?? category?.name ?? ENTRY_TYPES[entry.type].label}</span><span className="block truncate text-xs text-muted-foreground">{fmtDate(entry.date)} · {entry.particulars}</span></span>
-                      <span className="hidden sm:block"><TypeBadge type={entry.type} /></span>
-                      <span className="num shrink-0 text-right text-xs font-semibold sm:text-sm">{fmtPKR(entry.amount)}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-        <section className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold">Account position</h2><p className="text-xs text-muted-foreground">Outstanding balances</p></div>
-            <Link to="/accounts" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">Accounts <ArrowRight className="h-3.5 w-3.5" /></Link>
-          </div>
-          <div className="rounded-lg border bg-card p-5 shadow-sm">
-            <div className="grid grid-cols-2 gap-4 border-b pb-4">
-              <div className="min-w-0"><p className="text-xs text-muted-foreground">Receivable</p><p className="num mt-1 break-words text-base font-semibold text-success">{fmtPKR(receivable)}</p></div>
-              <div className="min-w-0 border-l pl-4"><p className="text-xs text-muted-foreground">Payable</p><p className="num mt-1 break-words text-base font-semibold text-destructive">{fmtPKR(payable)}</p></div>
-            </div>
-            {top.length === 0 ? <p className="py-7 text-center text-sm text-muted-foreground">No outstanding balances. <Link to="/accounts" className="font-medium text-primary hover:underline">Add an account</Link></p> : (
-              <ul className="divide-y">
-                {top.map(({ a, b }) => (
-                  <li key={a.id}>
-                    <Link to="/ledger/$id" params={{ id: a.id }} className="flex items-center justify-between gap-3 py-3 text-sm hover:text-primary">
-                      <span className="min-w-0 truncate font-medium">{a.name}<span className="ml-1.5 num text-xs font-normal text-muted-foreground">{a.code}</span></span>
-                      <span className={cn("num shrink-0 text-xs font-semibold", b > 0 ? "text-success" : "text-destructive")}>{fmtPKR(Math.abs(b))} {b > 0 ? "Dr" : "Cr"}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <section id="new-voucher" className="border-t pt-6">
-        <div className="mb-4 flex items-center gap-2"><CirclePlus className="h-5 w-5 text-primary" /><h2 className="text-base font-semibold">New voucher</h2></div>
-        <div className="rounded-lg border bg-card p-5 shadow-sm">
-          <EntryForm />
+        <div className="flex flex-wrap gap-2">
+          <Link to="/reports" className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium hover:bg-surface"><Scale className="h-4 w-4 text-report" /> Reports</Link>
+          <Link to="/admin" className="inline-flex items-center gap-2 rounded-full bg-hero px-4 py-2 text-sm font-medium text-hero-foreground hover:opacity-90"><ShieldCheck className="h-4 w-4" /> Admin Panel</Link>
+          <button onClick={() => save(DEFAULT_ORDER)} title="Reset tile order" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-2 text-sm text-muted-foreground hover:bg-surface"><RotateCcw className="h-4 w-4" /></button>
         </div>
-      </section>
+      </div>
+      <p className="text-xs text-muted-foreground">Drag tiles (or use the arrows) to rearrange your dashboard.</p>
+      <div className="grid auto-rows-[minmax(150px,auto)] grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 sm:gap-4">
+        {order.map((k) => {
+          const t = tiles[k]; if (!t) return null;
+          return (
+            <div
+              key={k}
+              draggable
+              onDragStart={() => setDrag(k)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropOn(k)}
+              className={cn("group relative min-w-0", t.span, drag === k && "opacity-50")}
+            >
+              {t.node}
+              <div className="absolute right-2 bottom-2 flex gap-0.5 rounded-full bg-background/80 p-0.5 opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                <button aria-label="Move left" onClick={() => move(k, -1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                <span className="cursor-grab p-1 text-muted-foreground"><GripVertical className="h-3.5 w-3.5" /></span>
+                <button aria-label="Move right" onClick={() => move(k, 1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronRight className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Dialog open={!!entryType} onOpenChange={(o) => !o && setEntryType(undefined)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
+          <DialogHeader><DialogTitle>New {entryType ? ENTRY_TYPES[entryType].label : ""} voucher</DialogTitle></DialogHeader>
+          {entryType && <EntryForm key={entryType} defaultType={entryType} onSaved={() => setEntryType(undefined)} />}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={newAcc} onOpenChange={setNewAcc}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>New Account</DialogTitle></DialogHeader>
+          {newAcc && <AccountForm onSaved={() => setNewAcc(false)} />}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function Head({ icon: Icon, label, light, tone }: { icon: typeof Wallet; label: string; light?: boolean; tone?: Tone }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <span className={cn("text-sm font-medium", light ? "opacity-85" : "text-muted-foreground")}>{label}</span>
+      <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", light ? "bg-hero-foreground/15" : tone && toneCls[tone])}><Icon className="h-[18px] w-[18px]" /></span>
+    </div>
+  );
+}
+function Mini({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-xl bg-hero-foreground/10 p-3"><div className="text-xs opacity-75">{label}</div><div className="num mt-1 truncate font-semibold">{fmtPKR(value)}</div></div>;
+}
+const tileBase = "glass flex h-full w-full flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5";
+function StatTile({ tone, icon, label, value, onClick, cta }: { tone: Tone; icon: typeof Wallet; label: string; value: number; onClick: () => void; cta: string }) {
+  return (
+    <button onClick={onClick} className={cn(tileBase, softCls[tone])}>
+      <Head icon={icon} label={label} tone={tone} />
+      <div><div className="num truncate text-xl font-semibold sm:text-2xl">{fmtPKR(value)}</div><div className={cn("mt-1 text-xs font-medium", `text-${tone}`)}>{cta} →</div></div>
+    </button>
+  );
+}
+function ActionTile({ tone, icon, label, detail, onClick }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={cn(tileBase, softCls[tone])}>
+      <Head icon={icon} label="" tone={tone} />
+      <div><div className="text-lg font-semibold">{label}</div><div className="num truncate text-xs text-muted-foreground">{detail}</div></div>
+    </button>
+  );
+}
+function LinkTile({ tone, icon, label, detail, to }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; to: "/accounts" | "/reports" | "/admin" | "/entries" }) {
+  return (
+    <Link to={to} className={cn(tileBase, softCls[tone])}>
+      <Head icon={icon} label="" tone={tone} />
+      <div><div className="text-lg font-semibold">{label}</div><div className="text-xs text-muted-foreground">{detail}</div></div>
+    </Link>
   );
 }
