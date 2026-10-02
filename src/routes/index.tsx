@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, Receipt,
-  RotateCcw, ShoppingCart, UserPlus, UsersRound, Wallet, Scale,
+  ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, ChevronLeft, ChevronRight, GripVertical, Receipt,
+  RotateCcw, ShoppingCart, UserPlus, Wallet, Scale,
 } from "lucide-react";
 import { EntryForm } from "@/components/app/EntryForm";
 import { AccountForm } from "@/components/app/AccountForm";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 });
 
 const ORDER_KEY = "cashbook-tile-order";
-const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "workers", "ledgers", "reports", "expense"];
+const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense"];
 type Tone = "received" | "paid" | "sale" | "purchase" | "account" | "ledger" | "report" | "expense" | "entries" | "admin" | "hero";
 const toneCls: Record<Tone, string> = {
   received: "bg-received text-hero-foreground",
@@ -80,6 +80,11 @@ function Dashboard() {
     } catch { /* ignore */ }
   }, []);
   const save = (o: string[]) => { setOrder(o); localStorage.setItem(ORDER_KEY, JSON.stringify(o)); };
+  const move = (k: string, dir: -1 | 1) => {
+    const i = order.indexOf(k); const j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    const o = [...order]; [o[i], o[j]] = [o[j]!, o[i]!]; save(o);
+  };
   const dropOn = (target: string) => {
     if (!drag || drag === target) return;
     const o = order.filter((k) => k !== drag); o.splice(o.indexOf(target), 0, drag); save(o); setDrag(undefined);
@@ -101,21 +106,26 @@ function Dashboard() {
       </div>) },
     inflow: { span: "", node: <StatTile tone="received" icon={ArrowDownLeft} label="Received today" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
     outflow: { span: "", node: <StatTile tone="paid" icon={ArrowUpRight} label="Paid today" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
-    sale: { span: "", node: <FilteredEntryTile tone="sale" icon={BarChart3} label="Sales Ledger" detail={`This month ${fmtPKR(mt("sale"))}`} type="sale" /> },
-    purchase: { span: "", node: <FilteredEntryTile tone="purchase" icon={ShoppingCart} label="Purchase Ledger" detail={`This month ${fmtPKR(mt("purchase"))}`} type="purchase" /> },
+    sale: { span: "", node: <ActionTile tone="sale" icon={BarChart3} label="Sale" detail={`This month ${fmtPKR(mt("sale"))}`} onClick={() => setEntryType("sale")} /> },
+    purchase: { span: "", node: <ActionTile tone="purchase" icon={ShoppingCart} label="Purchase" detail={`This month ${fmtPKR(mt("purchase"))}`} onClick={() => setEntryType("purchase")} /> },
     account: { span: "", node: <ActionTile tone="account" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
-    workers: { span: "", node: <AccountCategoryTile tone="entries" icon={UsersRound} label="Workers" detail={`${liveAccounts(d).filter((a) => a.type === "worker").length} worker accounts`} type="worker" /> },
-    ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail={`${liveAccounts(d).filter((a) => a.type === "customer").length} customers · ${liveAccounts(d).filter((a) => a.type === "supplier").length} suppliers · ${liveAccounts(d).filter((a) => a.type === "worker").length} workers`} to="/accounts" /> },
+    ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail="Party balances, statements and history" to="/accounts" /> },
     reports: { span: "col-span-2", node: <LinkTile tone="report" icon={Scale} label="Reports" detail="Cash book, sales, purchases, salaries and expenses" to="/reports" /> },
     expense: { span: "col-span-2", node: <ActionTile tone="expense" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
   };
 
   return (
     <div className="space-y-5 pb-10">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <button onClick={() => save(DEFAULT_ORDER)} title="Reset tile order" aria-label="Reset tile order" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-surface"><RotateCcw className="h-4 w-4" /></button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{d.company.name || "Mussa Enterprises"}</p>
+          <h1 className="text-2xl font-semibold">Dashboard</h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => save(DEFAULT_ORDER)} title="Reset tile order" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-2 text-sm text-muted-foreground hover:bg-surface"><RotateCcw className="h-4 w-4" /></button>
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">Drag tiles (or use the arrows) to rearrange your dashboard.</p>
       <div className="grid auto-rows-[minmax(150px,auto)] grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 sm:gap-4">
         {order.map((k) => {
           const t = tiles[k]; if (!t) return null;
@@ -126,9 +136,14 @@ function Dashboard() {
               onDragStart={() => setDrag(k)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOn(k)}
-              className={cn("relative min-w-0 cursor-grab active:cursor-grabbing", t.span, drag === k && "opacity-50")}
+              className={cn("group relative min-w-0", t.span, drag === k && "opacity-50")}
             >
               {t.node}
+              <div className="absolute right-2 bottom-2 flex gap-0.5 rounded-full bg-background/80 p-0.5 opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                <button aria-label="Move left" onClick={() => move(k, -1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                <span className="cursor-grab p-1 text-muted-foreground"><GripVertical className="h-3.5 w-3.5" /></span>
+                <button aria-label="Move right" onClick={() => move(k, 1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronRight className="h-3.5 w-3.5" /></button>
+              </div>
             </div>
           );
         })}
@@ -185,25 +200,9 @@ function ActionTile({ tone, icon, label, detail, onClick }: { tone: Tone; icon: 
 }
 function LinkTile({ tone, icon, label, detail, to }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; to: "/accounts" | "/reports" | "/admin" | "/entries" }) {
   return (
-    <Link to={to} search={{}} className={cn(tileBase, softCls[tone])}>
+    <Link to={to} className={cn(tileBase, softCls[tone])}>
       <Head icon={icon} label="" tone={tone} />
       <div><div className="text-lg font-semibold">{label}</div><div className="text-xs text-muted-foreground">{detail}</div></div>
-    </Link>
-  );
-}
-function FilteredEntryTile({ tone, icon, label, detail, type }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; type: "sale" | "purchase" }) {
-  return (
-    <Link to="/entries" search={{ type }} className={cn(tileBase, softCls[tone])}>
-      <Head icon={icon} label="" tone={tone} />
-      <div><div className="text-lg font-semibold">{label}</div><div className="num truncate text-xs text-muted-foreground">{detail}</div></div>
-    </Link>
-  );
-}
-function AccountCategoryTile({ tone, icon, label, detail, type }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; type: "worker" }) {
-  return (
-    <Link to="/accounts" search={{ type }} className={cn(tileBase, softCls[tone])}>
-      <Head icon={icon} label="" tone={tone} />
-      <div><div className="text-lg font-semibold">{label}</div><div className="truncate text-xs text-muted-foreground">{detail}</div></div>
     </Link>
   );
 }

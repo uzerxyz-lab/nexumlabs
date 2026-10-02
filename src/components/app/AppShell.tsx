@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun,
@@ -97,41 +98,35 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="no-print sticky top-0 z-30 border-b bg-card/80 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
-          <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-3">
-          <div className="flex items-center">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
-                <Button aria-label="Menu" title="Menu" variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button>
+                <button aria-label="Menu" className="rounded-full border bg-card p-2 hover:bg-surface"><Menu className="h-5 w-5" /></button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <SheetHeader className="border-b p-4"><SheetTitle><img src={logo.url} alt="Mussa Enterprises" className="h-auto w-44" /></SheetTitle></SheetHeader>
                 <div className="space-y-1 p-3">
-                  <SheetClose asChild><Button onClick={() => router.history.back()} variant="ghost" className="w-full justify-start"><ArrowLeft /> Back</Button></SheetClose>
+                  <SheetClose asChild>
+                    <button onClick={() => router.history.back()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface"><ArrowLeft className="h-4 w-4" /> Back</button>
+                  </SheetClose>
                   <div className="my-2 border-t" />
                   {NAV.map((n) => (
                     <SheetClose asChild key={n.to}>
-                      <Link to={n.to} search={{}} activeOptions={{ exact: n.to === "/" }} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface" activeProps={{ className: "bg-accent font-medium text-accent-foreground" }}>
+                      <Link to={n.to} activeOptions={{ exact: n.to === "/" }} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface" activeProps={{ className: "bg-accent font-medium text-accent-foreground" }}>
                         <n.icon className="h-4 w-4" /> {n.label}
                       </Link>
                     </SheetClose>
                   ))}
                   <div className="my-2 border-t" />
-                  <Button onClick={() => setDark((v) => !v)} variant="ghost" className="w-full justify-start">{dark ? <Sun /> : <Moon />} {dark ? "Day mode" : "Night mode"}</Button>
-                  <Button onClick={onLogout} variant="ghost" className="w-full justify-start text-destructive"><LogOut /> Log out</Button>
+                  <button onClick={() => setDark((v) => !v)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface">{dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {dark ? "Day mode" : "Night mode"}</button>
+                  <button onClick={onLogout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-surface"><LogOut className="h-4 w-4" /> Log out</button>
                 </div>
               </SheetContent>
             </Sheet>
+            <Link to="/" className="hidden sm:block"><img src={logo.url} alt="Mussa Enterprises" className="h-8 w-auto" /></Link>
           </div>
-          <Link to="/" className="mx-auto block min-w-0"><img src={logo.url} alt="Mussa Enterprises" className="mx-auto h-auto w-full max-w-52 sm:max-w-64" /></Link>
-          <div className="flex items-center justify-end gap-1">
-            <Button variant="ghost" size="icon" title={dark ? "Switch to day mode" : "Switch to night mode"} aria-label={dark ? "Switch to day mode" : "Switch to night mode"} onClick={() => setDark((v) => !v)}>
-              {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            <Button variant="ghost" size="icon" title="Lock app" aria-label="Lock app" onClick={onLogout}><Lock className="h-5 w-5" /></Button>
-          </div>
-          </div>
-          <div className="mx-auto mt-3 flex w-full max-w-xl items-center gap-2 rounded-full border bg-background px-4 py-1">
+          <div className="mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border bg-background px-4 py-1">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <AccountSearch
               id="global-search"
@@ -141,6 +136,11 @@ function Shell({ onLogout }: { onLogout: () => void }) {
               onSelect={(a) => navigate({ to: "/ledger/$id", params: { id: a.id } })}
             />
           </div>
+          <label className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium" title="Lock the app now">
+            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="hidden sm:inline">App Lock</span>
+            <Switch checked={false} onCheckedChange={(v) => { if (v) onLogout(); }} aria-label="Lock app" />
+          </label>
         </div>
       </header>
       <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">

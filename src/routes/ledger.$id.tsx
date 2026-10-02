@@ -45,7 +45,7 @@ function LedgerPage() {
     return { opening, rows, closing: bal, dr, cr };
   }, [d, id, a, from, to]);
 
-  if (!a) return <div className="py-20 text-center text-muted-foreground">Account not found. <Link to="/accounts" search={{}} className="text-primary hover:underline">Back to accounts</Link></div>;
+  if (!a) return <div className="py-20 text-center text-muted-foreground">Account not found. <Link to="/accounts" className="text-primary hover:underline">Back to accounts</Link></div>;
 
   const balText = (b: number) => `${fmtPKR(Math.abs(b), false)} ${b > 0 ? "Dr" : b < 0 ? "Cr" : ""}`;
   const period = from || to ? `${fmtDate(from) || "Start"} to ${fmtDate(to) || fmtDate(todayISO())}` : "All dates";
