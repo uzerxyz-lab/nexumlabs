@@ -36,11 +36,11 @@ const toneCls: Record<Tone, string> = {
   hero: "bg-hero text-hero-foreground",
 };
 const softCls: Record<Tone, string> = {
-  inflow: "border-inflow/30 bg-inflow/12",
-  outflow: "border-outflow/30 bg-outflow/12",
-  ledger: "border-ledger/30 bg-ledger/12",
-  report: "border-report/30 bg-report/12",
-  hero: "border-hero/30 bg-hero/12",
+  inflow: "border-inflow/40 bg-inflow/20",
+  outflow: "border-outflow/40 bg-outflow/20",
+  ledger: "border-ledger/40 bg-ledger/20",
+  report: "border-report/40 bg-report/20",
+  hero: "border-hero/40 bg-hero/20",
 };
 
 function Dashboard() {
