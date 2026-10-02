@@ -185,7 +185,7 @@ function ActionTile({ tone, icon, label, detail, onClick }: { tone: Tone; icon: 
 }
 function LinkTile({ tone, icon, label, detail, to }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; to: "/accounts" | "/reports" | "/admin" | "/entries" }) {
   return (
-    <Link to={to} className={cn(tileBase, softCls[tone])}>
+    <Link to={to} search={{}} className={cn(tileBase, softCls[tone])}>
       <Head icon={icon} label="" tone={tone} />
       <div><div className="text-lg font-semibold">{label}</div><div className="text-xs text-muted-foreground">{detail}</div></div>
     </Link>

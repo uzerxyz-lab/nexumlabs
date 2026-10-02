@@ -111,7 +111,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                   <div className="my-2 border-t" />
                   {NAV.map((n) => (
                     <SheetClose asChild key={n.to}>
-                      <Link to={n.to} activeOptions={{ exact: n.to === "/" }} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface" activeProps={{ className: "bg-accent font-medium text-accent-foreground" }}>
+                      <Link to={n.to} search={{}} activeOptions={{ exact: n.to === "/" }} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface" activeProps={{ className: "bg-accent font-medium text-accent-foreground" }}>
                         <n.icon className="h-4 w-4" /> {n.label}
                       </Link>
                     </SheetClose>

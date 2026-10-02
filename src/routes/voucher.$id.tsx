@@ -33,7 +33,7 @@ function VoucherPage() {
   const { id } = Route.useParams();
   const d = useData();
   const e = d.entries.find((x) => x.id === id);
-  if (!e) return <div className="py-20 text-center text-muted-foreground">Voucher not found. <Link to="/entries" className="text-primary hover:underline">Back</Link></div>;
+  if (!e) return <div className="py-20 text-center text-muted-foreground">Voucher not found. <Link to="/entries" search={{}} className="text-primary hover:underline">Back</Link></div>;
   const a = d.accounts.find((x) => x.id === e.accountId);
   const meta = ENTRY_TYPES[e.type];
   const title = meta.flow === "in" ? "Receipt Voucher" : meta.flow === "out" ? "Payment Voucher" : `${meta.label} Voucher`;
