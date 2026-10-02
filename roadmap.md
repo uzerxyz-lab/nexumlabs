@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Bento dashboard: colour palette, reorderable tiles, Admin quick button, hamburger menu, app lock, forgot password
 - [x] Redesign dashboard with professional summary tiles and visible report snapshots
 - [x] All pages (dashboard, entries, accounts, ledger, cashbook, expenses, reports, admin, settings, voucher)
 - [x] Branding: M mark icons, full logo on header, login, prints
