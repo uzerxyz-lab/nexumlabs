@@ -11,6 +11,9 @@ import { fmtPKR, norm } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/accounts")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: typeof search.type === "string" && search.type in ACCOUNT_TYPES ? search.type as keyof typeof ACCOUNT_TYPES : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Accounts — Mussa Enterprises Cash Book" },
@@ -26,9 +29,10 @@ export const Route = createFileRoute("/accounts")({
 
 function AccountsPage() {
   const d = useData();
+  const search = Route.useSearch();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(search.type ?? "");
   const list = useMemo(() => {
     const n = norm(q);
     return liveAccounts(d)
@@ -40,9 +44,17 @@ function AccountsPage() {
   return (
     <div>
       <PageHeader title="Accounts" subtitle={`${list.length} accounts`} actions={<Button onClick={() => setOpen(true)}><Plus /> New Account</Button>} />
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1" aria-label="Account categories">
+        <Button variant={type === "" ? "default" : "outline"} size="sm" onClick={() => setType("")}>All Accounts</Button>
+        {Object.entries(ACCOUNT_TYPES).map(([k, label]) => (
+          <Button key={k} variant={type === k ? "default" : "outline"} size="sm" onClick={() => setType(k)}>
+            {label}s · {liveAccounts(d).filter((a) => a.type === k).length}
+          </Button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-wrap gap-3">
         <Input className="max-w-sm" placeholder="Filter by name, ID, phone…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <NativeSelect className="w-44" value={type} onChange={(e) => setType(e.target.value)}>
+        <NativeSelect className="w-44" value={type} onChange={(e) => setType(e.target.value)} aria-label="Account type">
           <option value="">All types</option>
           {Object.entries(ACCOUNT_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </NativeSelect>

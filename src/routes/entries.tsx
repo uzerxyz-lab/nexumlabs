@@ -9,6 +9,9 @@ import { liveEntries, useData, ENTRY_TYPES, METHODS, type Data, type Entry } fro
 import { downloadFile, fmtDate, norm, toCSV } from "@/lib/format";
 
 export const Route = createFileRoute("/entries")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: typeof search.type === "string" && search.type in ENTRY_TYPES ? search.type as keyof typeof ENTRY_TYPES : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "All Entries — Mussa Enterprises Cash Book" },
@@ -96,7 +99,8 @@ export function exportEntriesCSV(d: Data, list: Entry[], name: string) {
 
 function EntriesPage() {
   const d = useData();
-  const [f, setF] = useState(emptyFilters);
+  const search = Route.useSearch();
+  const [f, setF] = useState({ ...emptyFilters, type: search.type ?? "" });
   const list = useMemo(() => filterEntries(d, liveEntries(d), f).sort((a, b) => b.date.localeCompare(a.date) || b.voucherNo - a.voucherNo), [d, f]);
   return (
     <div>
