@@ -97,7 +97,7 @@ function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,1fr)]">
         <section className="min-w-0">
           <div className="mb-3 flex items-end justify-between gap-3">
-            <div><h2 className="text-base font-semibold">Cash movement</h2><p className="text-xs text-muted-foreground">Last 7 days · receipts and payments</p></div>
+            <div><h2 className="text-base font-semibold">Payment movement</h2><p className="text-xs text-muted-foreground">Last 7 days · all payment methods</p></div>
             <Link to="/cashbook" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">Cash book <ArrowRight className="h-3.5 w-3.5" /></Link>
           </div>
           <div className="rounded-lg border bg-card p-5 shadow-sm">
