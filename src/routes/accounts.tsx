@@ -6,14 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AccountForm } from "@/components/app/AccountForm";
 import { NativeSelect, PageHeader } from "@/components/app/inputs";
-import { accountBalance, liveAccounts, useData, ACCOUNT_TYPES } from "@/lib/db";
+import { accountBalance, liveAccounts, useData, ACCOUNT_TYPES, type AccountType } from "@/lib/db";
 import { fmtPKR, norm } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/accounts")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    type: typeof search.type === "string" && search.type in ACCOUNT_TYPES ? search.type as keyof typeof ACCOUNT_TYPES : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { type?: AccountType } => {
+    const type = search["type"];
+    return typeof type === "string" && type in ACCOUNT_TYPES ? { type: type as AccountType } : {};
+  },
   head: () => ({
     meta: [
       { title: "Accounts — Mussa Enterprises Cash Book" },

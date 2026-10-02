@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EntriesTable } from "@/components/app/EntriesTable";
 import { Field, NativeSelect, PageHeader, PrintHeader } from "@/components/app/inputs";
-import { liveEntries, useData, ENTRY_TYPES, METHODS, type Data, type Entry } from "@/lib/db";
+import { liveEntries, useData, ENTRY_TYPES, METHODS, type Data, type Entry, type EntryType } from "@/lib/db";
 import { downloadFile, fmtDate, norm, toCSV } from "@/lib/format";
 
 export const Route = createFileRoute("/entries")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    type: typeof search.type === "string" && search.type in ENTRY_TYPES ? search.type as keyof typeof ENTRY_TYPES : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { type?: EntryType } => {
+    const type = search["type"];
+    return typeof type === "string" && type in ENTRY_TYPES ? { type: type as EntryType } : {};
+  },
   head: () => ({
     meta: [
       { title: "All Entries — Mussa Enterprises Cash Book" },
