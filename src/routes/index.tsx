@@ -168,12 +168,13 @@ function Head({ icon: Icon, label, light, tone }: { icon: typeof Wallet; label: 
 function Mini({ label, value }: { label: string; value: number }) {
   return <div className="rounded-xl bg-hero-foreground/10 p-3"><div className="text-xs opacity-75">{label}</div><div className="num mt-1 truncate font-semibold">{fmtPKR(value)}</div></div>;
 }
+const toneText: Record<Tone, string> = { inflow: "text-inflow", outflow: "text-outflow", ledger: "text-ledger", report: "text-report", hero: "text-hero" };
 const tileBase = "glass flex h-full w-full flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5";
 function StatTile({ tone, icon, label, value, onClick, cta }: { tone: Tone; icon: typeof Wallet; label: string; value: number; onClick: () => void; cta: string }) {
   return (
     <button onClick={onClick} className={cn(tileBase, softCls[tone])}>
       <Head icon={icon} label={label} tone={tone} />
-      <div><div className="num truncate text-xl font-semibold sm:text-2xl">{fmtPKR(value)}</div><div className={cn("mt-1 text-xs font-medium", `text-${tone}`)}>{cta} →</div></div>
+      <div><div className="num truncate text-xl font-semibold sm:text-2xl">{fmtPKR(value)}</div><div className={cn("mt-1 text-xs font-medium", toneText[tone])}>{cta} →</div></div>
     </button>
   );
 }
