@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, ChevronLeft, ChevronRight, GripVertical, Receipt,
-  RotateCcw, ShoppingCart, UserPlus, Wallet, Scale,
+  RotateCcw, ShieldCheck, ShoppingCart, UserPlus, Wallet, Scale, ListOrdered,
 } from "lucide-react";
 import { EntryForm } from "@/components/app/EntryForm";
 import { AccountForm } from "@/components/app/AccountForm";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 });
 
 const ORDER_KEY = "cashbook-tile-order";
-const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense"];
+const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense", "entries", "admin"];
 type Tone = "received" | "paid" | "sale" | "purchase" | "account" | "ledger" | "report" | "expense" | "entries" | "admin" | "hero";
 const toneCls: Record<Tone, string> = {
   received: "bg-received text-hero-foreground",
@@ -111,7 +111,9 @@ function Dashboard() {
     account: { span: "", node: <ActionTile tone="account" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
     ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail="Party balances, statements and history" to="/accounts" /> },
     reports: { span: "col-span-2", node: <LinkTile tone="report" icon={Scale} label="Reports" detail="Cash book, sales, purchases, salaries and expenses" to="/reports" /> },
-    expense: { span: "col-span-2", node: <ActionTile tone="expense" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
+    expense: { span: "", node: <ActionTile tone="expense" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
+    entries: { span: "", node: <LinkTile tone="entries" icon={ListOrdered} label="All Entries" detail={`${entries.length} vouchers`} to="/entries" /> },
+    admin: { span: "col-span-2", node: <LinkTile tone="admin" icon={ShieldCheck} label="Admin Panel" detail="Delete, edit and restore from the Recycle Bin" to="/admin" /> },
   };
 
   return (
@@ -122,6 +124,8 @@ function Dashboard() {
           <h1 className="text-2xl font-semibold">Dashboard</h1>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/reports" className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium hover:bg-surface"><Scale className="h-4 w-4 text-report" /> Reports</Link>
+          <Link to="/admin" className="inline-flex items-center gap-2 rounded-full bg-hero px-4 py-2 text-sm font-medium text-hero-foreground hover:opacity-90"><ShieldCheck className="h-4 w-4" /> Admin Panel</Link>
           <button onClick={() => save(DEFAULT_ORDER)} title="Reset tile order" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-2 text-sm text-muted-foreground hover:bg-surface"><RotateCcw className="h-4 w-4" /></button>
         </div>
       </div>
