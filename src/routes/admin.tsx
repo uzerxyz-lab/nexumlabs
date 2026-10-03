@@ -11,7 +11,7 @@ import { EntriesTable } from "@/components/app/EntriesTable";
 import { EntryForm } from "@/components/app/EntryForm";
 import { AccountForm } from "@/components/app/AccountForm";
 import { PageHeader } from "@/components/app/inputs";
-import { checkPw, deleteItems, liveAccounts, liveEntries, restoreLog, useData, ACCOUNT_TYPES, type Account, type Entry } from "@/lib/db";
+import { accountTypeLabel, checkPw, deleteItems, liveAccounts, liveEntries, restoreLog, useData, type Account, type Entry } from "@/lib/db";
 import { fmtDateTime, norm } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -117,7 +117,7 @@ function AdminPanel() {
                     <td className="px-3 py-2"><Checkbox checked={accSel.sel.has(a.id)} onCheckedChange={() => accSel.toggle(a.id)} /></td>
                     <td className="num px-3 py-2 font-semibold text-primary">{a.code}</td>
                     <td className="px-3 py-2">{a.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{ACCOUNT_TYPES[a.type]}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{accountTypeLabel(d, a.type)}</td>
                     <td className="px-3 py-2 text-muted-foreground">{a.phone}</td>
                     <td className="px-2"><button className="p-1 text-muted-foreground hover:text-primary" onClick={() => setEditAcc(a)}><Pencil className="h-4 w-4" /></button></td>
                   </tr>

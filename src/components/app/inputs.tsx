@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { titleCase, fmtDateTime } from "@/lib/format";
 import logo from "@/assets/mussa-logo.png.asset.json";
-import { searchAccounts, useData, ACCOUNT_TYPES, type Account } from "@/lib/db";
+import { accountTypeLabel, searchAccounts, useData, type Account, type AccountType } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 /** Text input that auto-capitalises the first letter of every word. */
@@ -43,6 +43,7 @@ export function AccountSearch({
   autoFocus,
   clearOnSelect,
   className,
+  accountType,
 }: {
   value?: string | undefined;
   onSelect: (a: Account) => void;
@@ -51,6 +52,7 @@ export function AccountSearch({
   autoFocus?: boolean;
   clearOnSelect?: boolean;
   className?: string;
+  accountType?: AccountType;
 }) {
   const d = useData();
   const selected = d.accounts.find((a) => a.id === value);
@@ -58,7 +60,7 @@ export function AccountSearch({
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(0);
   const wrap = useRef<HTMLDivElement>(null);
-  const results = searchAccounts(d, q);
+  const results = searchAccounts(d, q, 8, accountType);
 
   useEffect(() => {
     setQ(selected ? selected.name : "");
@@ -115,7 +117,7 @@ export function AccountSearch({
               >
                 <span className="font-medium">{a.name}</span>
                 <span className="flex items-center gap-2 text-xs text-muted-foreground">
-                  {ACCOUNT_TYPES[a.type]}
+                  {accountTypeLabel(d, a.type)}
                   <span className="num rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">{a.code}</span>
                 </span>
               </button>

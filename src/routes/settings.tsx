@@ -5,7 +5,7 @@ import { Download, RotateCcw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, PageHeader, TitleInput } from "@/components/app/inputs";
-import { changePassword, checkPw, exportJSON, getSnapshots, importJSON, restoreSnapshot, takeSnapshot, updateCompany, useData, type Snapshot } from "@/lib/db";
+import { changePassword, checkPw, exportJSON, getSnapshots, importJSON, restoreSnapshot, takeSnapshot, updateCompany, updateRecovery, useData, type Snapshot } from "@/lib/db";
 import { downloadFile, fmtDateTime, todayISO } from "@/lib/format";
 
 export const Route = createFileRoute("/settings")({
@@ -27,6 +27,8 @@ function SettingsPage() {
   const [c, setC] = useState(d.company);
   const [oldPw, setOldPw] = useState("");
   const [pw, setPw] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState(d.auth?.recoveryEmail ?? "");
+  const [recoveryPhone, setRecoveryPhone] = useState(d.auth?.recoveryPhone ?? "");
   const [snaps, setSnaps] = useState<Snapshot[]>([]);
   const file = useRef<HTMLInputElement>(null);
   useEffect(() => setSnaps(getSnapshots()), [d]);
@@ -41,6 +43,14 @@ function SettingsPage() {
           <Field label="Address"><TitleInput value={c.address} onValueChange={(v) => setC({ ...c, address: v })} /></Field>
           <Field label="Phone"><Input value={c.phone} onChange={(e) => setC({ ...c, phone: e.target.value })} /></Field>
           <div className="flex justify-end"><Button type="submit">Save</Button></div>
+        </form>
+
+        <form className="space-y-4 rounded-lg border bg-card p-5" onSubmit={(e) => { e.preventDefault(); if (!recoveryEmail.trim() && !recoveryPhone.trim()) { toast.error("Enter an email or phone number"); return; } updateRecovery(recoveryEmail.trim(), recoveryPhone.trim()); toast.success("Recovery details saved"); }}>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Local PIN Recovery</h2>
+          <p className="text-xs text-muted-foreground">Used only on this device to verify a PIN reset.</p>
+          <Field label="Registered Email"><Input type="email" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} /></Field>
+          <Field label="Registered Phone"><Input value={recoveryPhone} onChange={(e) => setRecoveryPhone(e.target.value)} /></Field>
+          <div className="flex justify-end"><Button type="submit">Save Recovery Details</Button></div>
         </form>
 
         <form className="space-y-4 rounded-lg border bg-card p-5" onSubmit={async (e) => {

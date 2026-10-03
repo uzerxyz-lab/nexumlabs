@@ -3,21 +3,26 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, NativeSelect, TitleInput } from "./inputs";
-import { addAccount, previewCode, searchAccounts, updateAccount, useData, ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/db";
+import { addAccount, addAccountType, accountTypeLabel, previewCode, searchAccounts, updateAccount, useData, ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/db";
 
 export function AccountForm({ initial, onSaved }: { initial?: Account; onSaved?: (a?: Account) => void }) {
   const d = useData();
   const [name, setName] = useState(initial?.name ?? "");
-  const [type, setType] = useState<AccountType>(initial?.type ?? "customer");
+  const [type, setType] = useState<AccountType>(initial?.type ?? "buyer");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [wages, setWages] = useState(initial?.fixedWages ? String(initial.fixedWages) : "");
+  const [idCard, setIdCard] = useState(initial?.idCard ?? "");
+  const [balanceSide, setBalanceSide] = useState<"receivable" | "payable">((initial?.openingBalance ?? 0) < 0 ? "payable" : "receivable");
   const [phone, setPhone] = useState(initial?.phone ?? "");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [opening, setOpening] = useState(initial ? String(initial.openingBalance || "") : "");
-  const similar = !initial && name.trim().length >= 2 ? searchAccounts(d, name, 4) : [];
+  const similar = !initial && name.trim().length >= 2 ? searchAccounts(d, name, 4, type) : [];
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { toast.error("Account name is required"); return; }
-    const payload = { name: name.trim(), type, phone: phone.trim(), address: address.trim(), openingBalance: Number(opening.replace(/,/g, "")) || 0 };
+    const openingAmount = Math.abs(Number(opening.replace(/,/g, "")) || 0);
+    const payload = { name: name.trim(), type, title: title.trim(), fixedWages: Number(wages.replace(/,/g, "")) || undefined, idCard: idCard.trim(), phone: phone.trim(), address: address.trim(), openingBalance: balanceSide === "payable" ? -openingAmount : openingAmount };
     if (initial) {
       updateAccount(initial.id, payload);
       toast.success("Account updated");
@@ -33,6 +38,18 @@ export function AccountForm({ initial, onSaved }: { initial?: Account; onSaved?:
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Account Type *">
+          <NativeSelect value={type} onChange={(e) => {
+            if (e.target.value === "__new") {
+              const value = prompt("New account type name");
+              if (value?.trim()) setType(addAccountType(value.trim()).id);
+            } else setType(e.target.value);
+          }}>
+            {Object.entries(ACCOUNT_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {d.accountTypes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            <option value="__new">+ New Account Type</option>
+          </NativeSelect>
+        </Field>
         <Field label="Account Name *" className="sm:col-span-2">
           <TitleInput autoFocus value={name} onValueChange={setName} placeholder="e.g. Ali Traders" />
         </Field>
@@ -48,22 +65,21 @@ export function AccountForm({ initial, onSaved }: { initial?: Account; onSaved?:
         </div>
       )}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Type">
-          <NativeSelect value={type} onChange={(e) => setType(e.target.value as AccountType)}>
-            {Object.entries(ACCOUNT_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </NativeSelect>
-        </Field>
+        {type !== "worker" && <Field label="Title (optional)"><TitleInput value={title} onValueChange={setTitle} placeholder="e.g. Proprietor" /></Field>}
+        {type === "worker" && <Field label="Fixed Wages (optional)"><Input inputMode="decimal" value={wages} onChange={(e) => setWages(e.target.value.replace(/[^0-9.,]/g, ""))} /></Field>}
         <Field label="Phone (optional)">
           <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
         </Field>
-        <Field label="Opening Balance (optional)">
+        {type === "worker" && <Field label="ID Card No. (optional)"><Input value={idCard} onChange={(e) => setIdCard(e.target.value)} /></Field>}
+        {type !== "worker" && <Field label="Opening Balance (optional)">
           <Input className="num text-right" inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value.replace(/[^0-9.,-]/g, ""))} placeholder="0" />
-        </Field>
+        </Field>}
       </div>
+      {type !== "worker" && <Field label="Balance Type"><NativeSelect value={balanceSide} onChange={(e) => setBalanceSide(e.target.value as "receivable" | "payable")}><option value="receivable">Receivable — They Owe Us</option><option value="payable">Payable — We Owe Them</option></NativeSelect></Field>}
       <Field label="Address (optional)">
         <TitleInput value={address} onValueChange={setAddress} />
       </Field>
-      <p className="text-xs text-muted-foreground">Opening balance: positive = receivable (they owe you), negative = payable (you owe them).</p>
+      <p className="text-xs text-muted-foreground">Creating {accountTypeLabel(d, type)} account. Only the name is required.</p>
       <div className="flex justify-end">
         <Button type="submit">{initial ? "Update Account" : "Create Account"}</Button>
       </div>

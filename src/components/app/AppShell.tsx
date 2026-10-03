@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
-  LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun,
+  LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun, ShoppingCart, BadgeDollarSign, HandCoins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountSearch, Field, TitleInput } from "./inputs";
-import { changePassword, checkPw, getData, loadData, redo, setupAuth, takeSnapshot, undo, useData, useLoaded } from "@/lib/db";
+import { changePassword, checkPw, getData, loadData, matchesRecovery, redo, setupAuth, takeSnapshot, undo, useData, useLoaded } from "@/lib/db";
 import { norm } from "@/lib/format";
 import logo from "@/assets/mussa-logo.png.asset.json";
 
@@ -17,6 +16,10 @@ const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/entries", label: "All Entries", icon: ListOrdered },
   { to: "/accounts", label: "Accounts", icon: Users },
+  { to: "/sales", label: "Sales", icon: BadgeDollarSign },
+  { to: "/purchases", label: "Purchases", icon: ShoppingCart },
+  { to: "/workers", label: "Workers", icon: Users },
+  { to: "/loans", label: "Personal Loans", icon: HandCoins },
   { to: "/cashbook", label: "Cash Book", icon: Wallet },
   { to: "/expenses", label: "Expenses", icon: Receipt },
   { to: "/reports", label: "Reports", icon: BookOpen },
@@ -98,7 +101,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="no-print sticky top-0 z-30 border-b bg-card/80 backdrop-blur">
-        <div className="mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 pt-3 sm:px-6">
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -124,9 +127,14 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 </div>
               </SheetContent>
             </Sheet>
-            <Link to="/" className="hidden sm:block"><img src={logo.url} alt="Mussa Enterprises" className="h-8 w-auto" /></Link>
           </div>
-          <div className="mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border bg-background px-4 py-1">
+          <Link to="/" className="justify-self-center"><img src={logo.url} alt="Mussa Enterprises" className="h-9 w-auto max-w-[55vw] object-contain sm:h-11" /></Link>
+          <div className="flex items-center gap-1">
+            <button onClick={() => onLogout()} aria-label="Lock app" title="Lock app" className="p-2 text-muted-foreground hover:text-foreground"><Lock className="h-5 w-5" /></button>
+            <button onClick={() => setDark((v) => !v)} aria-label="Toggle theme" title="Toggle theme" className="p-2 text-muted-foreground hover:text-foreground">{dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
+          </div>
+        </div>
+        <div className="mx-auto flex w-full max-w-xl items-center gap-2 px-4 py-2 sm:px-6"><div className="flex w-full items-center gap-2 rounded-full border bg-background px-4 py-1">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <AccountSearch
               id="global-search"
@@ -135,13 +143,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
               placeholder="Search accounts…  (Ctrl+F)"
               onSelect={(a) => navigate({ to: "/ledger/$id", params: { id: a.id } })}
             />
-          </div>
-          <label className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium" title="Lock the app now">
-            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="hidden sm:inline">App Lock</span>
-            <Switch checked={false} onCheckedChange={(v) => { if (v) onLogout(); }} aria-label="Lock app" />
-          </label>
-        </div>
+          </div></div>
       </header>
       <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
         <Outlet />
@@ -157,6 +159,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
   const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
+  const [recovery, setRecovery] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,9 +167,9 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
     setBusy(true);
     if (forgot) {
       const d = getData();
-      const ok = d.auth && norm(username) === norm(d.auth.username) && norm(company) === norm(d.company.name);
-      if (!ok) { setBusy(false); toast.error("Username or business name does not match"); return; }
-      if (pw.length < 4 || pw !== pw2) { setBusy(false); toast.error("New passwords must match and be at least 4 characters"); return; }
+      const ok = d.auth && norm(username) === norm(d.auth.username) && matchesRecovery(recovery);
+      if (!ok) { setBusy(false); toast.error("Username and registered email or phone do not match"); return; }
+      if (!/^\d{4,8}$/.test(pw) || pw !== pw2) { setBusy(false); toast.error("PINs must match and contain 4 to 8 digits"); return; }
       await changePassword(pw);
       toast.success("Password reset. You are signed in.");
       setBusy(false);
@@ -174,9 +177,10 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
       return;
     }
     if (firstRun) {
-      if (pw.length < 4) { setBusy(false); { toast.error("Password must be at least 4 characters"); return; } }
-      if (pw !== pw2) { setBusy(false); { toast.error("Passwords do not match"); return; } }
-      await setupAuth(username.trim(), pw, company.trim());
+      if (!/^\d{4,8}$/.test(pw)) { setBusy(false); toast.error("PIN must contain 4 to 8 digits"); return; }
+      if (pw !== pw2) { setBusy(false); toast.error("PINs do not match"); return; }
+      if (!recovery.trim()) { setBusy(false); toast.error("Recovery email or phone is required"); return; }
+      await setupAuth(username.trim(), pw, company.trim(), recovery.includes("@") ? recovery : "", recovery.includes("@") ? "" : recovery);
       onDone();
     } else if (await checkPw(pw, username)) onDone();
     else toast.error("Wrong username or password");
@@ -198,7 +202,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
           <img src={logo.url} alt="Mussa Enterprises" className="mx-auto mb-2 h-auto w-64" />
           <div className="border-t pt-4">
             <h1 className="text-xl font-semibold">{firstRun ? "Set up your Cash Book" : forgot ? "Reset password" : "Sign in"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{firstRun ? "Create your login. You will use this every time." : forgot ? "Confirm your username and business name, then choose a new password." : "Enter your username and password."}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{firstRun ? "Create your username, PIN and recovery detail." : forgot ? "Confirm your username and registered email or phone." : "Enter your username and PIN."}</p>
           </div>
           {(firstRun || forgot) && (
             <Field label="Company / Business Name">
@@ -208,12 +212,13 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
           <Field label="Username">
             <Input autoFocus value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>
-          <Field label={forgot ? "New Password" : "Password"}>
-            <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
+          {(firstRun || forgot) && <Field label="Recovery Email or Phone"><Input value={recovery} onChange={(e) => setRecovery(e.target.value)} /></Field>}
+          <Field label={forgot ? "New PIN" : "PIN"}>
+            <Input type="password" inputMode="numeric" value={pw} onChange={(e) => setPw(e.target.value.replace(/\D/g, "").slice(0, 8))} />
           </Field>
           {(firstRun || forgot) && (
-            <Field label="Confirm Password">
-              <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
+            <Field label="Confirm PIN">
+              <Input type="password" inputMode="numeric" value={pw2} onChange={(e) => setPw2(e.target.value.replace(/\D/g, "").slice(0, 8))} />
             </Field>
           )}
           <Button type="submit" className="w-full" disabled={busy}>{firstRun ? "Create & Continue" : forgot ? "Reset & Sign in" : "Sign in"}</Button>

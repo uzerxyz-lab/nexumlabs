@@ -13,9 +13,9 @@ export const Route = createFileRoute("/expenses")({
   head: () => ({
     meta: [
       { title: "Expenses — Mussa Enterprises Cash Book" },
-      { name: "description", content: "Miscellaneous expenses by category and location with filters and custom categories." },
+      { name: "description", content: "Miscellaneous expenses by searchable custom category." },
       { property: "og:title", content: "Expenses — Mussa Enterprises Cash Book" },
-      { property: "og:description", content: "Miscellaneous expenses by category and location with filters and custom categories." },
+      { property: "og:description", content: "Miscellaneous expenses by searchable custom category." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -23,13 +23,14 @@ export const Route = createFileRoute("/expenses")({
   component: ExpensesPage,
 });
 
-function NamedList({ title, kind, items }: { title: string; kind: "categories" | "tags"; items: Named[] }) {
+function NamedList({ title, items }: { title: string; items: Named[] }) {
   const [name, setName] = useState("");
   return (
     <div className="rounded-lg border bg-card p-4">
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
-      <form className="mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim()) { addNamed(kind, name.trim()); setName(""); } }}>
-        <Input value={name} onChange={(e) => setName(titleCase(e.target.value))} placeholder="Add new…" />
+      <form className="mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim()) { addNamed("categories", name.trim()); setName(""); } }}>
+        <Input list="expense-categories" value={name} onChange={(e) => setName(titleCase(e.target.value))} placeholder="Search or add category…" />
+        <datalist id="expense-categories">{items.map((item) => <option key={item.id} value={item.name} />)}</datalist>
         <Button type="submit" size="icon"><Plus /></Button>
       </form>
       <ul className="max-h-64 divide-y overflow-auto text-sm">
@@ -37,8 +38,8 @@ function NamedList({ title, kind, items }: { title: string; kind: "categories" |
           <li key={c.id} className="flex items-center justify-between py-1.5">
             {c.name}
             <span className="flex gap-1">
-              <button className="p-1 text-muted-foreground hover:text-primary" onClick={() => { const n = prompt("Rename", c.name); if (n?.trim()) renameNamed(kind, c.id, titleCase(n.trim())); }}><Pencil className="h-3.5 w-3.5" /></button>
-              <button className="p-1 text-muted-foreground hover:text-destructive" onClick={() => confirm(`Remove "${c.name}"?`) && removeNamed(kind, c.id)}><Trash2 className="h-3.5 w-3.5" /></button>
+              <button className="p-1 text-muted-foreground hover:text-primary" onClick={() => { const n = prompt("Rename", c.name); if (n?.trim()) renameNamed("categories", c.id, titleCase(n.trim())); }}><Pencil className="h-3.5 w-3.5" /></button>
+              <button className="p-1 text-muted-foreground hover:text-destructive" onClick={() => confirm(`Remove "${c.name}"?`) && removeNamed("categories", c.id)}><Trash2 className="h-3.5 w-3.5" /></button>
             </span>
           </li>
         ))}
@@ -54,7 +55,7 @@ function ExpensesPage() {
   const byCat = useMemo(() => {
     const m = new Map<string, number>();
     list.forEach((e) => {
-      const k = `${d.categories.find((c) => c.id === e.categoryId)?.name ?? "Uncategorised"}${e.tagId ? " · " + (d.tags.find((t) => t.id === e.tagId)?.name ?? "") : ""}`;
+      const k = d.categories.find((c) => c.id === e.categoryId)?.name ?? "Uncategorised";
       m.set(k, (m.get(k) ?? 0) + e.amount);
     });
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
@@ -68,9 +69,8 @@ function ExpensesPage() {
         <Button variant="outline" onClick={() => window.print()}><Printer /> Print / PDF</Button>
       </>} />
       <PrintHeader title="Expense Report" />
-      <div className="no-print grid gap-4 md:grid-cols-3">
-        <NamedList title="Categories" kind="categories" items={d.categories} />
-        <NamedList title="Tags / Locations" kind="tags" items={d.tags} />
+      <div className="no-print grid gap-4 md:grid-cols-2">
+        <NamedList title="Categories" items={d.categories} />
         <div className="rounded-lg border bg-card p-4">
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Summary</h3>
           <ul className="max-h-72 divide-y overflow-auto text-sm">

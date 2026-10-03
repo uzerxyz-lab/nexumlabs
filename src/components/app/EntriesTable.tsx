@@ -84,7 +84,6 @@ export function EntriesTable({
                   ) : (
                     <span className="font-medium">{named(d.categories, e.categoryId) ?? "—"}</span>
                   )}
-                  {e.tagId && <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-xs text-secondary-foreground">{named(d.tags, e.tagId)}</span>}
                 </td>
                 <td className="max-w-xs truncate px-3 py-2 text-muted-foreground">{e.particulars}</td>
                 <td className="px-3 py-2 text-xs">

@@ -5,5 +5,9 @@
 - [x] Branding: M mark icons, full logo on header, login, prints
 - [x] Spec details: short IDs, search, shortcuts, drafts, 30-min restore points, cash tally, recycle bin
 - [x] English UI, installable app manifest
+- [x] Account-specific forms and searches; searchable expense categories; tags removed
+- [x] Dedicated sales, purchases, workers and isolated personal-loans pages
+- [x] PIN setup and local email/phone recovery; persistent adaptive theme
+- [x] Updated dashboard/header, cash privacy, drag-only tile ordering and print sizing
 - [ ] Full offline caching of the app itself (service worker) — to add next
 - [ ] Optional cloud backup — waiting for user go-ahead

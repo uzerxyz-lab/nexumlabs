@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, ChevronLeft, ChevronRight, GripVertical, Receipt,
-  RotateCcw, ShieldCheck, ShoppingCart, UserPlus, Wallet, Scale, ListOrdered,
+  ArrowDownLeft, ArrowUpRight, BarChart3, BookOpen, Eye, EyeOff, HandCoins, Receipt,
+  ShoppingCart, UserPlus, Users, Wallet, Scale,
 } from "lucide-react";
 import { EntryForm } from "@/components/app/EntryForm";
 import { AccountForm } from "@/components/app/AccountForm";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 });
 
 const ORDER_KEY = "cashbook-tile-order";
-const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "reports", "expense", "entries", "admin"];
+const DEFAULT_ORDER = ["summary", "inflow", "outflow", "sale", "purchase", "account", "ledgers", "workers", "reports", "expense", "loans"];
 type Tone = "received" | "paid" | "sale" | "purchase" | "account" | "ledger" | "report" | "expense" | "entries" | "admin" | "hero";
 const toneCls: Record<Tone, string> = {
   received: "bg-received text-hero-foreground",
@@ -73,6 +73,7 @@ function Dashboard() {
   const [drag, setDrag] = useState<string>();
   const [entryType, setEntryType] = useState<EntryType>();
   const [newAcc, setNewAcc] = useState(false);
+  const [showCash, setShowCash] = useState(true);
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(ORDER_KEY) ?? "null") as string[] | null;
@@ -80,11 +81,6 @@ function Dashboard() {
     } catch { /* ignore */ }
   }, []);
   const save = (o: string[]) => { setOrder(o); localStorage.setItem(ORDER_KEY, JSON.stringify(o)); };
-  const move = (k: string, dir: -1 | 1) => {
-    const i = order.indexOf(k); const j = i + dir;
-    if (j < 0 || j >= order.length) return;
-    const o = [...order]; [o[i], o[j]] = [o[j]!, o[i]!]; save(o);
-  };
   const dropOn = (target: string) => {
     if (!drag || drag === target) return;
     const o = order.filter((k) => k !== drag); o.splice(o.indexOf(target), 0, drag); save(o); setDrag(undefined);
@@ -93,9 +89,9 @@ function Dashboard() {
   const tiles: Record<string, { span: string; node: ReactNode }> = {
     summary: { span: "col-span-2 row-span-2", node: (
       <div className={cn("flex h-full flex-col justify-between rounded-2xl p-5 sm:p-6", toneCls.hero)}>
-        <Head icon={Wallet} label="Cash in hand" light />
+        <div className="flex items-start justify-between"><Head icon={Wallet} label="Cash in hand" light /><button aria-label={showCash ? "Hide cash amount" : "Show cash amount"} onClick={() => setShowCash((v) => !v)} className="rounded-full p-2 hover:bg-hero-foreground/10">{showCash ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}</button></div>
         <div>
-          <div className="num text-3xl font-semibold sm:text-4xl">{fmtPKR(cashInHand)}</div>
+          <div className="num text-3xl font-semibold sm:text-4xl">{showCash ? fmtPKR(cashInHand) : "Rs ••••••"}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
             <Mini label="Receivable" value={receivable} />
             <Mini label="Payable" value={payable} />
@@ -104,32 +100,25 @@ function Dashboard() {
           </div>
         </div>
       </div>) },
-    inflow: { span: "", node: <StatTile tone="received" icon={ArrowDownLeft} label="Received today" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
-    outflow: { span: "", node: <StatTile tone="paid" icon={ArrowUpRight} label="Paid today" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
-    sale: { span: "", node: <ActionTile tone="sale" icon={BarChart3} label="Sale" detail={`This month ${fmtPKR(mt("sale"))}`} onClick={() => setEntryType("sale")} /> },
-    purchase: { span: "", node: <ActionTile tone="purchase" icon={ShoppingCart} label="Purchase" detail={`This month ${fmtPKR(mt("purchase"))}`} onClick={() => setEntryType("purchase")} /> },
+    inflow: { span: "", node: <StatTile tone="received" icon={ArrowDownLeft} label="Receive Payment" value={cashIn} onClick={() => setEntryType("inward")} cta="New receipt" /> },
+    outflow: { span: "", node: <StatTile tone="paid" icon={ArrowUpRight} label="Issue Payment" value={cashOut} onClick={() => setEntryType("outward")} cta="New payment" /> },
+    sale: { span: "", node: <LinkTile tone="sale" icon={BarChart3} label="Sales" detail={`This month ${fmtPKR(mt("sale"))}`} to="/sales" /> },
+    purchase: { span: "", node: <LinkTile tone="purchase" icon={ShoppingCart} label="Purchases" detail={`This month ${fmtPKR(mt("purchase"))}`} to="/purchases" /> },
     account: { span: "", node: <ActionTile tone="account" icon={UserPlus} label="New Account" detail={`${liveAccounts(d).length} accounts`} onClick={() => setNewAcc(true)} /> },
     ledgers: { span: "col-span-2", node: <LinkTile tone="ledger" icon={BookOpen} label="Ledgers & Accounts" detail="Party balances, statements and history" to="/accounts" /> },
+    workers: { span: "", node: <LinkTile tone="entries" icon={Users} label="Workers" detail="Worker accounts, wages and advances" to="/workers" /> },
     reports: { span: "col-span-2", node: <LinkTile tone="report" icon={Scale} label="Reports" detail="Cash book, sales, purchases, salaries and expenses" to="/reports" /> },
     expense: { span: "", node: <ActionTile tone="expense" icon={Receipt} label="Expense" detail={`This month ${fmtPKR(mt("expense"))}`} onClick={() => setEntryType("expense")} /> },
-    entries: { span: "", node: <LinkTile tone="entries" icon={ListOrdered} label="All Entries" detail={`${entries.length} vouchers`} to="/entries" /> },
-    admin: { span: "col-span-2", node: <LinkTile tone="admin" icon={ShieldCheck} label="Admin Panel" detail="Delete, edit and restore from the Recycle Bin" to="/admin" /> },
+    loans: { span: "", node: <LinkTile tone="admin" icon={HandCoins} label="Personal Loans" detail="Given, taken and repayment tracking" to="/loans" /> },
   };
 
   return (
     <div className="space-y-5 pb-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{d.company.name || "Mussa Enterprises"}</p>
           <h1 className="text-2xl font-semibold">Dashboard</h1>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/reports" className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium hover:bg-surface"><Scale className="h-4 w-4 text-report" /> Reports</Link>
-          <Link to="/admin" className="inline-flex items-center gap-2 rounded-full bg-hero px-4 py-2 text-sm font-medium text-hero-foreground hover:opacity-90"><ShieldCheck className="h-4 w-4" /> Admin Panel</Link>
-          <button onClick={() => save(DEFAULT_ORDER)} title="Reset tile order" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-2 text-sm text-muted-foreground hover:bg-surface"><RotateCcw className="h-4 w-4" /></button>
-        </div>
       </div>
-      <p className="text-xs text-muted-foreground">Drag tiles (or use the arrows) to rearrange your dashboard.</p>
       <div className="grid auto-rows-[minmax(150px,auto)] grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 sm:gap-4">
         {order.map((k) => {
           const t = tiles[k]; if (!t) return null;
@@ -143,11 +132,6 @@ function Dashboard() {
               className={cn("group relative min-w-0", t.span, drag === k && "opacity-50")}
             >
               {t.node}
-              <div className="absolute right-2 bottom-2 flex gap-0.5 rounded-full bg-background/80 p-0.5 opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                <button aria-label="Move left" onClick={() => move(k, -1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronLeft className="h-3.5 w-3.5" /></button>
-                <span className="cursor-grab p-1 text-muted-foreground"><GripVertical className="h-3.5 w-3.5" /></span>
-                <button aria-label="Move right" onClick={() => move(k, 1)} className="rounded-full p-1 text-muted-foreground hover:text-foreground"><ChevronRight className="h-3.5 w-3.5" /></button>
-              </div>
             </div>
           );
         })}
@@ -185,7 +169,7 @@ const toneText: Record<Tone, string> = {
   account: "text-account", ledger: "text-ledger-card", report: "text-report-card",
   expense: "text-expense-card", entries: "text-entry-card", admin: "text-admin-card", hero: "text-hero",
 };
-const tileBase = "glass flex h-full w-full flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5";
+const tileBase = "glass flex h-full w-full flex-col justify-between rounded-xl border-2 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 sm:p-5";
 function StatTile({ tone, icon, label, value, onClick, cta }: { tone: Tone; icon: typeof Wallet; label: string; value: number; onClick: () => void; cta: string }) {
   return (
     <button onClick={onClick} className={cn(tileBase, softCls[tone])}>
@@ -202,7 +186,7 @@ function ActionTile({ tone, icon, label, detail, onClick }: { tone: Tone; icon: 
     </button>
   );
 }
-function LinkTile({ tone, icon, label, detail, to }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; to: "/accounts" | "/reports" | "/admin" | "/entries" }) {
+function LinkTile({ tone, icon, label, detail, to }: { tone: Tone; icon: typeof Wallet; label: string; detail: string; to: "/accounts" | "/reports" | "/workers" | "/loans" | "/sales" | "/purchases" }) {
   return (
     <Link to={to} className={cn(tileBase, softCls[tone])}>
       <Head icon={icon} label="" tone={tone} />
