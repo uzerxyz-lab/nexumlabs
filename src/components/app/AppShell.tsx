@@ -4,7 +4,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
-  LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun,
+  LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun, ShoppingCart, BadgeDollarSign, HandCoins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,10 @@ const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/entries", label: "All Entries", icon: ListOrdered },
   { to: "/accounts", label: "Accounts", icon: Users },
+  { to: "/sales", label: "Sales", icon: BadgeDollarSign },
+  { to: "/purchases", label: "Purchases", icon: ShoppingCart },
+  { to: "/workers", label: "Workers", icon: Users },
+  { to: "/loans", label: "Personal Loans", icon: HandCoins },
   { to: "/cashbook", label: "Cash Book", icon: Wallet },
   { to: "/expenses", label: "Expenses", icon: Receipt },
   { to: "/reports", label: "Reports", icon: BookOpen },
@@ -98,7 +102,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="no-print sticky top-0 z-30 border-b bg-card/80 backdrop-blur">
-        <div className="mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 pt-3 sm:px-6">
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -124,9 +128,14 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 </div>
               </SheetContent>
             </Sheet>
-            <Link to="/" className="hidden sm:block"><img src={logo.url} alt="Mussa Enterprises" className="h-8 w-auto" /></Link>
           </div>
-          <div className="mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border bg-background px-4 py-1">
+          <Link to="/" className="justify-self-center"><img src={logo.url} alt="Mussa Enterprises" className="h-9 w-auto max-w-[55vw] object-contain sm:h-11" /></Link>
+          <div className="flex items-center gap-1">
+            <button onClick={() => onLogout()} aria-label="Lock app" title="Lock app" className="p-2 text-muted-foreground hover:text-foreground"><Lock className="h-5 w-5" /></button>
+            <button onClick={() => setDark((v) => !v)} aria-label="Toggle theme" title="Toggle theme" className="p-2 text-muted-foreground hover:text-foreground">{dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
+          </div>
+        </div>
+        <div className="mx-auto flex w-full max-w-xl items-center gap-2 px-4 py-2 sm:px-6"><div className="flex w-full items-center gap-2 rounded-full border bg-background px-4 py-1">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <AccountSearch
               id="global-search"
@@ -135,13 +144,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
               placeholder="Search accounts…  (Ctrl+F)"
               onSelect={(a) => navigate({ to: "/ledger/$id", params: { id: a.id } })}
             />
-          </div>
-          <label className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium" title="Lock the app now">
-            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="hidden sm:inline">App Lock</span>
-            <Switch checked={false} onCheckedChange={(v) => { if (v) onLogout(); }} aria-label="Lock app" />
-          </label>
-        </div>
+          </div></div>
       </header>
       <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
         <Outlet />
