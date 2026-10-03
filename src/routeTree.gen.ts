@@ -15,8 +15,12 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CashbookRouteImport } from './routes/cashbook'
 import { Route as EntriesRouteImport } from './routes/entries'
 import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as LoansRouteImport } from './routes/loans'
+import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SalesRouteImport } from './routes/sales'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as WorkersRouteImport } from './routes/workers'
 import { Route as LedgerIdRouteImport } from './routes/ledger.$id'
 import { Route as VoucherIdRouteImport } from './routes/voucher.$id'
 
@@ -50,14 +54,34 @@ const ExpensesRoute = ExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoansRoute = LoansRouteImport.update({
+  id: '/loans',
+  path: '/loans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PurchasesRoute = PurchasesRouteImport.update({
+  id: '/purchases',
+  path: '/purchases',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SalesRoute = SalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkersRoute = WorkersRouteImport.update({
+  id: '/workers',
+  path: '/workers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LedgerIdRoute = LedgerIdRouteImport.update({
@@ -78,8 +102,12 @@ export interface FileRoutesByFullPath {
   '/cashbook': typeof CashbookRoute
   '/entries': typeof EntriesRoute
   '/expenses': typeof ExpensesRoute
+  '/loans': typeof LoansRoute
+  '/purchases': typeof PurchasesRoute
   '/reports': typeof ReportsRoute
+  '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/workers': typeof WorkersRoute
   '/ledger/$id': typeof LedgerIdRoute
   '/voucher/$id': typeof VoucherIdRoute
 }
@@ -90,8 +118,12 @@ export interface FileRoutesByTo {
   '/cashbook': typeof CashbookRoute
   '/entries': typeof EntriesRoute
   '/expenses': typeof ExpensesRoute
+  '/loans': typeof LoansRoute
+  '/purchases': typeof PurchasesRoute
   '/reports': typeof ReportsRoute
+  '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/workers': typeof WorkersRoute
   '/ledger/$id': typeof LedgerIdRoute
   '/voucher/$id': typeof VoucherIdRoute
 }
@@ -103,8 +135,12 @@ export interface FileRoutesById {
   '/cashbook': typeof CashbookRoute
   '/entries': typeof EntriesRoute
   '/expenses': typeof ExpensesRoute
+  '/loans': typeof LoansRoute
+  '/purchases': typeof PurchasesRoute
   '/reports': typeof ReportsRoute
+  '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/workers': typeof WorkersRoute
   '/ledger/$id': typeof LedgerIdRoute
   '/voucher/$id': typeof VoucherIdRoute
 }
@@ -117,8 +153,12 @@ export interface FileRouteTypes {
     | '/cashbook'
     | '/entries'
     | '/expenses'
+    | '/loans'
+    | '/purchases'
     | '/reports'
+    | '/sales'
     | '/settings'
+    | '/workers'
     | '/ledger/$id'
     | '/voucher/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -129,8 +169,12 @@ export interface FileRouteTypes {
     | '/cashbook'
     | '/entries'
     | '/expenses'
+    | '/loans'
+    | '/purchases'
     | '/reports'
+    | '/sales'
     | '/settings'
+    | '/workers'
     | '/ledger/$id'
     | '/voucher/$id'
   id:
@@ -141,8 +185,12 @@ export interface FileRouteTypes {
     | '/cashbook'
     | '/entries'
     | '/expenses'
+    | '/loans'
+    | '/purchases'
     | '/reports'
+    | '/sales'
     | '/settings'
+    | '/workers'
     | '/ledger/$id'
     | '/voucher/$id'
   fileRoutesById: FileRoutesById
@@ -154,8 +202,12 @@ export interface RootRouteChildren {
   CashbookRoute: typeof CashbookRoute
   EntriesRoute: typeof EntriesRoute
   ExpensesRoute: typeof ExpensesRoute
+  LoansRoute: typeof LoansRoute
+  PurchasesRoute: typeof PurchasesRoute
   ReportsRoute: typeof ReportsRoute
+  SalesRoute: typeof SalesRoute
   SettingsRoute: typeof SettingsRoute
+  WorkersRoute: typeof WorkersRoute
   LedgerIdRoute: typeof LedgerIdRoute
   VoucherIdRoute: typeof VoucherIdRoute
 }
@@ -204,6 +256,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loans': {
+      id: '/loans'
+      path: '/loans'
+      fullPath: '/loans'
+      preLoaderRoute: typeof LoansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/purchases': {
+      id: '/purchases'
+      path: '/purchases'
+      fullPath: '/purchases'
+      preLoaderRoute: typeof PurchasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -211,11 +277,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sales': {
+      id: '/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof SalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workers': {
+      id: '/workers'
+      path: '/workers'
+      fullPath: '/workers'
+      preLoaderRoute: typeof WorkersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ledger/$id': {
@@ -242,8 +322,12 @@ const rootRouteChildren: RootRouteChildren = {
   CashbookRoute: CashbookRoute,
   EntriesRoute: EntriesRoute,
   ExpensesRoute: ExpensesRoute,
+  LoansRoute: LoansRoute,
+  PurchasesRoute: PurchasesRoute,
   ReportsRoute: ReportsRoute,
+  SalesRoute: SalesRoute,
   SettingsRoute: SettingsRoute,
+  WorkersRoute: WorkersRoute,
   LedgerIdRoute: LedgerIdRoute,
   VoucherIdRoute: VoucherIdRoute,
 }
