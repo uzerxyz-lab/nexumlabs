@@ -133,7 +133,10 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
         </Field>
         {meta.party ? (
           <Field label={type === "salary" || type === "advance" ? "Worker" : "Account"} className="lg:col-span-2">
-            <AccountSearch key={formKey} id="entry-account" value={accountId} accountType={type === "sale" ? "buyer" : type === "purchase" ? "supplier" : type === "salary" || type === "advance" ? "worker" : undefined} onSelect={(a) => setAccountId(a.id)} />
+            {type === "sale" ? <AccountSearch key={formKey} id="entry-account" value={accountId} accountType="buyer" onSelect={(a) => setAccountId(a.id)} />
+              : type === "purchase" ? <AccountSearch key={formKey} id="entry-account" value={accountId} accountType="supplier" onSelect={(a) => setAccountId(a.id)} />
+                : type === "salary" || type === "advance" ? <AccountSearch key={formKey} id="entry-account" value={accountId} accountType="worker" onSelect={(a) => setAccountId(a.id)} />
+                  : <AccountSearch key={formKey} id="entry-account" value={accountId} onSelect={(a) => setAccountId(a.id)} />}
           </Field>
         ) : (
           <Field label="Category" className="lg:col-span-2">

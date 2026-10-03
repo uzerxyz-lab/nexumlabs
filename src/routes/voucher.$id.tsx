@@ -50,7 +50,6 @@ function VoucherPage() {
         <Row label="Date / Time" value={`${fmtDate(e.date)} · ${fmtTime(e.createdAt)}`} />
         <Row label={meta.flow === "in" ? "Received From" : meta.flow === "out" ? "Paid To" : "Account"} value={a ? `${a.name} (${a.code})` : undefined} />
         <Row label="Category" value={d.categories.find((c) => c.id === e.categoryId)?.name} />
-        <Row label="Tag / Location" value={d.tags.find((c) => c.id === e.tagId)?.name} />
         <Row label="Particulars" value={e.particulars} />
         <Row label="Payment Method" value={e.method ? METHODS[e.method] : undefined} />
         <Row label="Cheque No." value={e.chequeNo} />
