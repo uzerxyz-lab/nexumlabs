@@ -116,7 +116,6 @@ function Dashboard() {
     <div className="space-y-5 pb-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{d.company.name || "Mussa Enterprises"}</p>
           <h1 className="text-2xl font-semibold">Dashboard</h1>
         </div>
       </div>
