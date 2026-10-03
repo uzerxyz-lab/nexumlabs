@@ -85,7 +85,7 @@ function Reports() {
         <table className="w-full text-sm">
           <thead className="bg-surface text-left text-xs uppercase text-muted-foreground"><tr><th className="px-4 py-2">Worker</th><th className="px-4 py-2 text-right">Salary Paid</th><th className="px-4 py-2 text-right">Advance</th><th className="px-4 py-2 text-right">Total</th></tr></thead>
           <tbody>
-            {workers.length === 0 && <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">No worker accounts ({ACCOUNT_TYPES.worker} type)</td></tr>}
+            {workers.length === 0 && <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">No worker accounts ({ACCOUNT_TYPES["worker"]} type)</td></tr>}
             {workers.map((w) => (
               <tr key={w.a.id} className="border-t">
                 <td className="px-4 py-2"><Link to="/ledger/$id" params={{ id: w.a.id }} className="hover:text-primary">{w.a.name}</Link> <span className="num text-xs text-muted-foreground">{w.a.code}</span></td>
