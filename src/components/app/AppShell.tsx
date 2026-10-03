@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   LayoutDashboard, ListOrdered, Users, BookOpen, Receipt, Wallet, ShieldCheck, Settings, LogOut, Search, Menu, ArrowLeft, Lock, Moon, Sun, ShoppingCart, BadgeDollarSign, HandCoins,
@@ -9,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountSearch, Field, TitleInput } from "./inputs";
-import { changePassword, checkPw, getData, loadData, redo, setupAuth, takeSnapshot, undo, useData, useLoaded } from "@/lib/db";
+import { changePassword, checkPw, getData, loadData, matchesRecovery, redo, setupAuth, takeSnapshot, undo, useData, useLoaded } from "@/lib/db";
 import { norm } from "@/lib/format";
 import logo from "@/assets/mussa-logo.png.asset.json";
 
@@ -160,6 +159,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
   const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
+  const [recovery, setRecovery] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,9 +167,9 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
     setBusy(true);
     if (forgot) {
       const d = getData();
-      const ok = d.auth && norm(username) === norm(d.auth.username) && norm(company) === norm(d.company.name);
-      if (!ok) { setBusy(false); toast.error("Username or business name does not match"); return; }
-      if (pw.length < 4 || pw !== pw2) { setBusy(false); toast.error("New passwords must match and be at least 4 characters"); return; }
+      const ok = d.auth && norm(username) === norm(d.auth.username) && matchesRecovery(recovery);
+      if (!ok) { setBusy(false); toast.error("Username and registered email or phone do not match"); return; }
+      if (!/^\d{4,8}$/.test(pw) || pw !== pw2) { setBusy(false); toast.error("PINs must match and contain 4 to 8 digits"); return; }
       await changePassword(pw);
       toast.success("Password reset. You are signed in.");
       setBusy(false);
@@ -177,9 +177,10 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
       return;
     }
     if (firstRun) {
-      if (pw.length < 4) { setBusy(false); { toast.error("Password must be at least 4 characters"); return; } }
-      if (pw !== pw2) { setBusy(false); { toast.error("Passwords do not match"); return; } }
-      await setupAuth(username.trim(), pw, company.trim());
+      if (!/^\d{4,8}$/.test(pw)) { setBusy(false); toast.error("PIN must contain 4 to 8 digits"); return; }
+      if (pw !== pw2) { setBusy(false); toast.error("PINs do not match"); return; }
+      if (!recovery.trim()) { setBusy(false); toast.error("Recovery email or phone is required"); return; }
+      await setupAuth(username.trim(), pw, company.trim(), recovery.includes("@") ? recovery : "", recovery.includes("@") ? "" : recovery);
       onDone();
     } else if (await checkPw(pw, username)) onDone();
     else toast.error("Wrong username or password");
@@ -201,7 +202,7 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
           <img src={logo.url} alt="Mussa Enterprises" className="mx-auto mb-2 h-auto w-64" />
           <div className="border-t pt-4">
             <h1 className="text-xl font-semibold">{firstRun ? "Set up your Cash Book" : forgot ? "Reset password" : "Sign in"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{firstRun ? "Create your login. You will use this every time." : forgot ? "Confirm your username and business name, then choose a new password." : "Enter your username and password."}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{firstRun ? "Create your username, PIN and recovery detail." : forgot ? "Confirm your username and registered email or phone." : "Enter your username and PIN."}</p>
           </div>
           {(firstRun || forgot) && (
             <Field label="Company / Business Name">
@@ -211,12 +212,13 @@ function Login({ firstRun, onDone }: { firstRun: boolean; onDone: () => void }) 
           <Field label="Username">
             <Input autoFocus value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>
-          <Field label={forgot ? "New Password" : "Password"}>
-            <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
+          {(firstRun || forgot) && <Field label="Recovery Email or Phone"><Input value={recovery} onChange={(e) => setRecovery(e.target.value)} /></Field>}
+          <Field label={forgot ? "New PIN" : "PIN"}>
+            <Input type="password" inputMode="numeric" value={pw} onChange={(e) => setPw(e.target.value.replace(/\D/g, "").slice(0, 8))} />
           </Field>
           {(firstRun || forgot) && (
-            <Field label="Confirm Password">
-              <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
+            <Field label="Confirm PIN">
+              <Input type="password" inputMode="numeric" value={pw2} onChange={(e) => setPw2(e.target.value.replace(/\D/g, "").slice(0, 8))} />
             </Field>
           )}
           <Button type="submit" className="w-full" disabled={busy}>{firstRun ? "Create & Continue" : forgot ? "Reset & Sign in" : "Sign in"}</Button>

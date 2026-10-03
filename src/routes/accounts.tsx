@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AccountForm } from "@/components/app/AccountForm";
 import { NativeSelect, PageHeader } from "@/components/app/inputs";
-import { accountBalance, liveAccounts, useData, ACCOUNT_TYPES } from "@/lib/db";
+import { accountBalance, accountTypeLabel, liveAccounts, useData, ACCOUNT_TYPES } from "@/lib/db";
 import { fmtPKR, norm } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,7 @@ function AccountsPage() {
         <NativeSelect className="w-44" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="">All types</option>
           {Object.entries(ACCOUNT_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          {d.accountTypes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </NativeSelect>
       </div>
       <div className="overflow-x-auto rounded-lg border bg-card">
@@ -64,7 +65,7 @@ function AccountsPage() {
               <tr key={a.id} className="border-t hover:bg-surface">
                 <td className="num px-4 py-2.5 font-semibold text-primary">{a.code}</td>
                 <td className="px-4 py-2.5"><Link to="/ledger/$id" params={{ id: a.id }} className="font-medium hover:text-primary hover:underline">{a.name}</Link></td>
-                <td className="px-4 py-2.5 text-muted-foreground">{ACCOUNT_TYPES[a.type]}</td>
+                <td className="px-4 py-2.5 text-muted-foreground">{accountTypeLabel(d, a.type)}</td>
                 <td className="px-4 py-2.5 text-muted-foreground">{a.phone || "—"}</td>
                 <td className={cn("num px-4 py-2.5 text-right font-medium", b > 0 && "text-success", b < 0 && "text-destructive")}>
                   {fmtPKR(Math.abs(b), false)} {b > 0 ? "Dr" : b < 0 ? "Cr" : ""}

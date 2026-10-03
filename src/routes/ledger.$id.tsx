@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, PageHeader, PrintHeader } from "@/components/app/inputs";
 import { TypeBadge } from "@/components/app/EntriesTable";
-import { liveEntries, signedForAccount, useData, ACCOUNT_TYPES, METHODS } from "@/lib/db";
+import { accountTypeLabel, liveEntries, signedForAccount, useData, METHODS } from "@/lib/db";
 import { downloadFile, fmtDate, fmtPKR, toCSV, todayISO } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -61,7 +61,7 @@ function LedgerPage() {
     <div>
       <PageHeader
         title={a.name}
-        subtitle={`${a.code} · ${ACCOUNT_TYPES[a.type]}${a.phone ? " · " + a.phone : ""}`}
+        subtitle={`${a.code} · ${accountTypeLabel(d, a.type)}${a.phone ? " · " + a.phone : ""}`}
         actions={<>
           <Button variant="outline" onClick={exportCSV}><Download /> Excel</Button>
           <Button onClick={() => window.print()}><Printer /> Print / PDF</Button>
