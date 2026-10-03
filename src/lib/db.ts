@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { norm } from "./format";
 
-export type AccountType = "customer" | "supplier" | "worker" | "other";
+export type AccountType = "buyer" | "supplier" | "worker" | string;
 export type EntryType = "inward" | "outward" | "sale" | "purchase" | "salary" | "advance" | "expense";
 export type PayMethod = "cash" | "cheque" | "online";
 export type ChequeStatus = "pending" | "cleared" | "bounced";
@@ -14,6 +14,9 @@ export interface Account {
   phone: string;
   address: string;
   openingBalance: number;
+  title?: string | undefined;
+  fixedWages?: number | undefined;
+  idCard?: string | undefined;
   createdAt: string;
   deletedAt?: string | undefined;
 }
@@ -32,7 +35,6 @@ export interface Entry {
   chequeStatus?: ChequeStatus | undefined;
   particulars: string;
   categoryId?: string | undefined;
-  tagId?: string | undefined;
   createdAt: string;
   updatedAt?: string | undefined;
   deletedAt?: string | undefined;
@@ -41,6 +43,29 @@ export interface Entry {
 export interface Named {
   id: string;
   name: string;
+}
+
+export interface LoanRepayment {
+  id: string;
+  date: string;
+  amount: number;
+  note: string;
+  createdAt: string;
+  deletedAt?: string | undefined;
+}
+
+export interface Loan {
+  id: string;
+  direction: "given" | "taken";
+  person: string;
+  contact: string;
+  date: string;
+  amount: number;
+  particulars: string;
+  repayments: LoanRepayment[];
+  createdAt: string;
+  updatedAt?: string | undefined;
+  deletedAt?: string | undefined;
 }
 
 export interface LogItem {
@@ -59,12 +84,13 @@ export interface Data {
   accounts: Account[];
   entries: Entry[];
   categories: Named[];
-  tags: Named[];
+  accountTypes: Named[];
+  loans: Loan[];
   log: LogItem[];
   seq: number;
   voucherSeq: number;
   company: { name: string; address: string; phone: string };
-  auth?: { username: string; hash: string } | undefined;
+  auth?: { username: string; hash: string; mode?: "password" | "pin"; recoveryEmail?: string; recoveryPhone?: string } | undefined;
 }
 
 export const ENTRY_TYPES: Record<EntryType, { label: string; cash: boolean; party: boolean; flow: "in" | "out" | "none" }> = {
@@ -79,10 +105,9 @@ export const ENTRY_TYPES: Record<EntryType, { label: string; cash: boolean; part
 
 export const METHODS: Record<PayMethod, string> = { cash: "Cash", cheque: "Cheque", online: "Online Transfer" };
 export const ACCOUNT_TYPES: Record<AccountType, string> = {
-  customer: "Customer",
+  buyer: "Buyer",
   supplier: "Supplier",
   worker: "Worker",
-  other: "Other",
 };
 
 const KEY = "cashbook-data-v1";
@@ -93,8 +118,9 @@ function empty(): Data {
   return {
     accounts: [],
     entries: [],
-    categories: ["Bijli Bill", "Gas Bill", "Pani Bill", "Transport", "Rent", "Chai Pani", "Maintenance", "Stationery"].map(n),
-    tags: ["Factory", "Ghar", "Office"].map(n),
+    categories: ["LESCO Bill", "Fuel", "Grocery", "Salary", "Advance"].map(n),
+    accountTypes: [],
+    loans: [],
     log: [],
     seq: 1,
     voucherSeq: 1,
@@ -121,7 +147,16 @@ export function loadData() {
   if (loaded) return;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) data = { ...empty(), ...JSON.parse(raw) };
+    if (raw) {
+      const incoming = JSON.parse(raw) as Partial<Data> & { tags?: Named[] };
+      const base = empty();
+      data = { ...base, ...incoming, accountTypes: incoming.accountTypes ?? [], loans: incoming.loans ?? [] } as Data;
+      data.accounts = (incoming.accounts ?? []).map((a) => ({ ...a, type: a.type === "customer" || a.type === "other" ? "buyer" : a.type }));
+      data.entries = (incoming.entries ?? []).map((e) => { const { tagId: _legacyTag, ...entry } = e as Entry & { tagId?: string }; return entry; });
+      const wanted = ["LESCO Bill", "Fuel", "Grocery", "Salary", "Advance"];
+      const existing = new Set(data.categories.map((c) => norm(c.name)));
+      wanted.forEach((name) => { if (!existing.has(norm(name))) data.categories.push({ id: uid(), name }); });
+    }
   } catch {
     /* ignore corrupt data */
   }
@@ -176,10 +211,10 @@ export async function hashPw(pw: string) {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-export async function setupAuth(username: string, pw: string, companyName: string) {
-  const hash = await hashPw(pw);
+export async function setupAuth(username: string, pin: string, companyName: string, recoveryEmail = "", recoveryPhone = "") {
+  const hash = await hashPw(pin);
   commit((d) => {
-    d.auth = { username, hash };
+    d.auth = { username, hash, mode: "pin", recoveryEmail, recoveryPhone };
     if (companyName) d.company.name = companyName;
   }, false);
 }
@@ -192,6 +227,13 @@ export function updateCompany(c: Data["company"]) {
   commit((d) => {
     d.company = c;
   }, false);
+}
+export function updateRecovery(recoveryEmail: string, recoveryPhone: string) {
+  commit((d) => { if (d.auth) Object.assign(d.auth, { recoveryEmail, recoveryPhone, mode: "pin" }); }, false);
+}
+export function matchesRecovery(value: string) {
+  const n = norm(value);
+  return !!n && !!data.auth && (n === norm(data.auth.recoveryEmail ?? "") || n === norm(data.auth.recoveryPhone ?? ""));
 }
 
 /* ---------- accounts ---------- */
@@ -216,6 +258,15 @@ export function addAccount(a: Omit<Account, "id" | "code" | "createdAt">) {
     d.seq += 1;
   });
   return acc;
+}
+
+export function accountTypeLabel(d: Data, type: AccountType) {
+  return ACCOUNT_TYPES[type] ?? d.accountTypes.find((x) => x.id === type)?.name ?? type;
+}
+export function addAccountType(name: string) {
+  const item = { id: `custom-${uid()}`, name };
+  commit((d) => { d.accountTypes.push(item); });
+  return item;
 }
 
 export function updateAccount(id: string, patch: Partial<Account>) {
@@ -321,20 +372,20 @@ export function purgeLog(logIds: string[]) {
 }
 
 /* ---------- categories / tags ---------- */
-export function addNamed(kind: "categories" | "tags", name: string) {
+export function addNamed(kind: "categories", name: string) {
   const item = { id: uid(), name };
   commit((d) => {
     d[kind].push(item);
   });
   return item;
 }
-export function renameNamed(kind: "categories" | "tags", id: string, name: string) {
+export function renameNamed(kind: "categories", id: string, name: string) {
   commit((d) => {
     const x = d[kind].find((i) => i.id === id);
     if (x) x.name = name;
   });
 }
-export function removeNamed(kind: "categories" | "tags", id: string) {
+export function removeNamed(kind: "categories", id: string) {
   commit((d) => {
     d[kind] = d[kind].filter((i) => i.id !== id);
   });
@@ -373,10 +424,10 @@ export function cashFlow(e: Entry) {
   return f === "in" ? e.amount : f === "out" ? -e.amount : 0;
 }
 
-export function searchAccounts(d: Data, q: string, limit = 8) {
+export function searchAccounts(d: Data, q: string, limit = 8, type?: AccountType) {
   const n = norm(q);
   if (!n) return [];
-  const list = liveAccounts(d);
+  const list = liveAccounts(d).filter((a) => !type || a.type === type);
   const starts = list.filter((a) => norm(a.name).startsWith(n) || norm(a.code).startsWith(n));
   const contains = list.filter((a) => !starts.includes(a) && (norm(a.name).includes(n) || norm(a.code).includes(n) || norm(a.phone).includes(n) || norm(a.address).includes(n)));
   return [...starts, ...contains].slice(0, limit);
@@ -384,6 +435,22 @@ export function searchAccounts(d: Data, q: string, limit = 8) {
 
 export function findDuplicate(d: Data, e: { accountId?: string | undefined; amount: number; date: string; type: EntryType }, ignoreId?: string) {
   return liveEntries(d).find((x) => x.id !== ignoreId && x.type === e.type && x.accountId === e.accountId && x.amount === e.amount && x.date === e.date);
+}
+
+/* ---------- personal loans (isolated from business cash) ---------- */
+export const liveLoans = (d: Data) => d.loans.filter((l) => !l.deletedAt);
+export const loanPaid = (l: Loan) => l.repayments.filter((r) => !r.deletedAt).reduce((s, r) => s + r.amount, 0);
+export const loanRemaining = (l: Loan) => Math.max(0, l.amount - loanPaid(l));
+export function addLoan(input: Omit<Loan, "id" | "repayments" | "createdAt">) {
+  const loan: Loan = { ...input, id: uid(), repayments: [], createdAt: new Date().toISOString() };
+  commit((d) => { d.loans.push(loan); });
+  return loan;
+}
+export function addLoanRepayment(loanId: string, input: Pick<LoanRepayment, "date" | "amount" | "note">) {
+  commit((d) => { const l = d.loans.find((x) => x.id === loanId); if (l) { l.repayments.push({ ...input, id: uid(), createdAt: new Date().toISOString() }); l.updatedAt = new Date().toISOString(); } });
+}
+export function deleteLoan(id: string) {
+  commit((d) => { const l = d.loans.find((x) => x.id === id); if (l) l.deletedAt = new Date().toISOString(); });
 }
 
 /* ---------- backup ---------- */
@@ -395,7 +462,7 @@ export function importJSON(text: string) {
   const incoming: Data = parsed.data ?? parsed;
   if (!Array.isArray(incoming.accounts) || !Array.isArray(incoming.entries)) throw new Error("Invalid backup file");
   commit((d) => {
-    Object.assign(d, { ...empty(), ...incoming, auth: d.auth ?? incoming.auth });
+    Object.assign(d, { ...empty(), ...incoming, accountTypes: incoming.accountTypes ?? [], loans: incoming.loans ?? [], auth: d.auth ?? incoming.auth });
   });
 }
 
@@ -419,7 +486,7 @@ export function restoreSnapshot(at: string) {
   const parsed = JSON.parse(s.data);
   commit((d) => { Object.assign(d, { ...empty(), ...parsed, auth: d.auth }); });
 }
-export async function changePassword(pw: string) {
-  const hash = await hashPw(pw);
-  commit((d) => { if (d.auth) d.auth.hash = hash; }, false);
+export async function changePassword(pin: string) {
+  const hash = await hashPw(pin);
+  commit((d) => { if (d.auth) { d.auth.hash = hash; d.auth.mode = "pin"; } }, false);
 }
