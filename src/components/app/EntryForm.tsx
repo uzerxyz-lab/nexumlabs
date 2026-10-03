@@ -25,7 +25,6 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
   const [reference, setReference] = useState(initial?.reference ?? "");
   const [particulars, setParticulars] = useState(initial?.particulars ?? "");
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? "");
-  const [tagId, setTagId] = useState(initial?.tagId ?? "");
   const [formKey, setFormKey] = useState(0);
 
   const meta = ENTRY_TYPES[type];
@@ -40,7 +39,7 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
       if (!dr.amount && !dr.particulars && !dr.accountId) return;
       toast("Unsaved draft recovered. Continue?", {
         duration: 15000,
-        action: { label: "Restore", onClick: () => { setType(dr.type); setDate(dr.date); setAccountId(dr.accountId); setAmount(dr.amount); setParticulars(dr.particulars); setMethod(dr.method); setChequeNo(dr.chequeNo); setBank(dr.bank); setReference(dr.reference); setCategoryId(dr.categoryId); setTagId(dr.tagId); setFormKey((k) => k + 1); } },
+        action: { label: "Restore", onClick: () => { setType(dr.type); setDate(dr.date); setAccountId(dr.accountId); setAmount(dr.amount); setParticulars(dr.particulars); setMethod(dr.method); setChequeNo(dr.chequeNo); setBank(dr.bank); setReference(dr.reference); setCategoryId(dr.categoryId); setFormKey((k) => k + 1); } },
         cancel: { label: "Discard", onClick: () => localStorage.removeItem(DRAFT) },
       });
     } catch { /* ignore */ }
@@ -49,11 +48,11 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
   useEffect(() => {
     if (initial) return;
     const t = setTimeout(() => {
-      if (amount || particulars || accountId) localStorage.setItem(DRAFT, JSON.stringify({ type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId, tagId }));
+      if (amount || particulars || accountId) localStorage.setItem(DRAFT, JSON.stringify({ type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId }));
       else localStorage.removeItem(DRAFT);
     }, 1500);
     return () => clearTimeout(t);
-  }, [initial, type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId, tagId]);
+  }, [initial, type, date, accountId, amount, particulars, method, chequeNo, bank, reference, categoryId]);
 
   useEffect(() => {
     if (initial) return;
@@ -81,7 +80,6 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
       reference: meta.cash && method === "online" ? reference : undefined,
       chequeStatus: meta.cash && method === "cheque" ? initial?.chequeStatus ?? "pending" : undefined,
       categoryId: type === "expense" ? categoryId : undefined,
-      tagId: tagId || undefined,
     } as const;
     const dup = findDuplicate(getData(), payload, initial?.id);
     if (dup && !confirm(`A similar entry (V-${dup.voucherNo}) already exists for the same account, amount and date. Save anyway?`)) return;
@@ -98,17 +96,17 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
     }
   };
 
-  const addCat = (kind: "categories" | "tags") => {
-    const name = prompt(kind === "categories" ? "New category name (e.g. Bijli Bill)" : "New tag / location (e.g. Factory)");
+  const addCat = () => {
+    const name = prompt("New category name (e.g. LESCO Bill)");
     if (!name?.trim()) return;
-    const item = addNamed(kind, name.trim().replace(/(^|\s)(\p{L})/gu, (_m, a, b) => a + b.toUpperCase()));
-    if (kind === "categories") setCategoryId(item.id); else setTagId(item.id);
+    const item = addNamed("categories", name.trim().replace(/(^|\s)(\p{L})/gu, (_m, a, b) => a + b.toUpperCase()));
+    setCategoryId(item.id);
   };
 
   return (
     <form onSubmit={submit} data-entry-form className="space-y-4">
       <div className="flex flex-wrap gap-1.5">
-        {TYPE_ORDER.map((t) => (
+        {(type === "sale" || type === "purchase" ? ([type, type === "sale" ? "purchase" : "sale"] as EntryType[]) : type === "inward" || type === "outward" ? ([type, type === "inward" ? "outward" : "inward"] as EntryType[]) : TYPE_ORDER.filter((t) => t === type)).map((t) => (
           <button
             key={t}
             type="button"
@@ -135,7 +133,7 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
         </Field>
         {meta.party ? (
           <Field label={type === "salary" || type === "advance" ? "Worker" : "Account"} className="lg:col-span-2">
-            <AccountSearch key={formKey} id="entry-account" value={accountId} onSelect={(a) => setAccountId(a.id)} />
+            <AccountSearch key={formKey} id="entry-account" value={accountId} accountType={type === "sale" ? "buyer" : type === "purchase" ? "supplier" : type === "salary" || type === "advance" ? "worker" : undefined} onSelect={(a) => setAccountId(a.id)} />
           </Field>
         ) : (
           <Field label="Category" className="lg:col-span-2">
@@ -144,7 +142,7 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
                 <option value="">Select category (optional)…</option>
                 {d.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </NativeSelect>
-              <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => addCat("categories")}>+ New</Button>
+               <Button type="button" variant="outline" size="sm" className="h-9" onClick={addCat}>+ New</Button>
             </div>
           </Field>
         )}
@@ -180,18 +178,9 @@ export function EntryForm({ initial, onSaved, defaultType = "inward" }: { initia
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Particulars" className="lg:col-span-3">
+      <div className="grid gap-4">
+        <Field label="Particulars">
           <TitleInput value={particulars} onValueChange={setParticulars} placeholder={type === "sale" || type === "purchase" ? "e.g. Iron Billet 25 Ton" : "Details / remarks"} />
-        </Field>
-        <Field label="Tag / Location">
-          <div className="flex gap-2">
-            <NativeSelect value={tagId} onChange={(e) => setTagId(e.target.value)}>
-              <option value="">None</option>
-              {d.tags.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </NativeSelect>
-            <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => addCat("tags")}>+</Button>
-          </div>
         </Field>
       </div>
 
